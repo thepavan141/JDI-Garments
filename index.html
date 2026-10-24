@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>JDI Garments – The Fashion Destination</title>
+    <link rel="icon" type="image/jpeg" href="photo.jpg">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="pinned-top">
+        <div class="announce" id="promoBanner" aria-live="polite">
+            <button class="promo-nav" id="promoPrev" aria-label="Previous offer" type="button">&#8249;</button>
+            <div class="promo-slider" id="promoSlider">
+                <div class="promo-track" id="promoTrack">
+                    <span class="promo-item active"> Get 10% off on first purchase</span>
+                    <span class="promo-item"> Get offer: ₹300 off on ₹2,500</span>
+                    <span class="promo-item"> New stock every week · Pick up near Devichowk</span>
+                </div>
+            </div>
+            <button class="promo-nav" id="promoNext" aria-label="Next offer" type="button">&#8250;</button>
+        </div>
+        <header>
+            <div class="wrap header-row">
+                <a class="brand" href="#top">
+                    <img src="photo.jpg" alt="JDI Garments" class="logo">
+                </a>
+                <div class="nav-search">
+                    <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input id="q" type="search" placeholder="Search shirts, jeans, kurtas…"
+                        aria-label="Search products">
+                </div>
+                <nav aria-label="Main"><a href="#shop">Shop</a><a href="#visit">Visit us</a><a
+                        href="#policy">Exchange</a>
+                </nav>
+            </div>
+        </header>
+    </div>
+
+    <main id="top">
+        <section class="banner-section" aria-label="Featured Collections">
+            <div class="wrap">
+                <div class="motion-banner" id="motionBanner">
+                    <div class="motion-slides" id="motionSlides">
+                        <div class="motion-slide active">
+                            <img src="banner1.jpg" alt="JDI Garments - Wear Your Vibe" class="banner-img">
+                        </div>
+                        <div class="motion-slide">
+                            <img src="banner2.jpg" alt="JDI Garments - Premium Casual Wear" class="banner-img">
+                        </div>
+                    </div>
+                    <div class="banner-dots" id="bannerDots">
+                        <button class="dot active" aria-label="Slide 1" data-index="0"></button>
+                        <button class="dot" aria-label="Slide 2" data-index="1"></button>
+                    </div>
+                    <button class="banner-arrow prev" id="bannerPrev" aria-label="Previous banner"
+                        type="button">&#10094;</button>
+                    <button class="banner-arrow next" id="bannerNext" aria-label="Next banner"
+                        type="button">&#10095;</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="hero">
+            <div class="wrap">
+                <div class="hero-main">
+                    <div class="hero-text">
+                        <h1>Men’s wear, picked fresh every week.</h1>
+                        <p>Browse the latest stock, choose your size and colour, and send your order on WhatsApp. Pick
+                            it up at
+                            our store near Devichowk.</p>
+                        <div class="btns">
+                            <a class="btn primary" id="btnNewArrivals" href="#shop">Explore Collection</a>
+                            <a class="btn ghost" id="joinCommunity" href="#" target="_blank" rel="noopener">Join our
+                                WhatsApp
+                                community</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section id="shop" class="frames-section">
+            <div class="wrap">
+                <div class="product-types-bar">
+                    <div class="chips" id="chips" role="group" aria-label="Product Types"></div>
+                </div>
+                <div id="empty" class="note" hidden>No products found in this category.</div>
+                <div class="lookbook-grid products-grid" id="grid"></div>
+            </div>
+        </section>
+
+        <section id="visit" class="store-showcase-section">
+            <div class="wrap">
+                <!-- Top Showcase Block: Left Brand Text + Right Featured Image -->
+                <div class="store-showcase-top">
+                    <!-- Left Side Info -->
+                    <div class="store-left-content">
+                        <span class="store-kicker">JDI STORE.</span>
+                        <h2 class="store-headline">THE FASHION DESTINATION.</h2>
+                        <p class="store-tagline">Find how close you are to elevating your vibe!</p>
+                        <p class="store-desc">Step into our physical store near Devichowk to experience the fits in person. Try on fresh weekly arrivals, feel the premium fabrics, and find your signature style.</p>
+                        <div class="store-cta-row">
+                            <a class="btn store-btn-main" id="dir" target="_blank" rel="noopener" href="#">Get Directions</a>
+                            <a class="btn store-btn-ghost" id="call" href="#">Call The Shop</a>
+                            <button class="btn store-btn-admin" id="btnOpenAdminStore" type="button" title="Admin: Update showcase photos">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                <span>Admin: Edit Photos</span>
+                            </button>
+                        </div>
+                        <div class="store-meta-pills">
+                            <span class="store-pill">📍 Near Devichowk</span>
+                            <span class="store-pill">🕒 Open Daily 10 AM – 10 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Featured Image -->
+                    <div class="store-right-media" id="storeMediaTopRight">
+                        <div class="store-media-card main-showcase-card">
+                            <img src="store_main.jpg" alt="JDI Flagship Showroom" class="store-img" id="imgStoreMain">
+                            <div class="store-img-overlay">
+                                <span class="store-badge-tag">Devichowk Flagship</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Down Showcase Block: 3 Image Cards Side-by-Side (matching reference image) -->
+                <div class="store-showcase-down" id="storeShowcaseDown">
+                    <!-- Down Image 1 -->
+                    <div class="store-media-card down-card" id="storeCardDown1">
+                        <img src="store_interior.jpg" alt="Shirts & Casuals Rack" class="store-img" id="imgStoreDown1">
+                        <div class="store-img-overlay">
+                            <span class="store-badge-tag">Fit Lounge</span>
+                        </div>
+                    </div>
+
+                    <!-- Down Image 2 (with brand plaque like VIRAT'S CHOICE in reference) -->
+                    <div class="store-media-card down-card" id="storeCardDown2">
+                        <img src="store_rack.jpg" alt="Featured Streetwear Rack" class="store-img" id="imgStoreDown2">
+                        <div class="store-wood-sign">JDI'S CHOICE</div>
+                        <div class="store-img-overlay">
+                            <span class="store-badge-tag">Weekly Drops</span>
+                        </div>
+                    </div>
+
+                    <!-- Down Image 3 (with yellow outline tags like SKINNY CROP / SLIM TAPERED in reference) -->
+                    <div class="store-media-card down-card" id="storeCardDown3">
+                        <img src="store_denim.jpg" alt="Denim & Trousers Studio" class="store-img" id="imgStoreDown3">
+                        <div class="store-outline-tag tag-left">COMFORT FLEX</div>
+                        <div class="store-outline-tag tag-right">SLIM TAPERED</div>
+                        <div class="store-img-overlay">
+                            <span class="store-badge-tag">Denim Studio</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="policy">
+            <div class="wrap">
+                <div class="box">
+                    <h3>Exchange and returns</h3>
+                    <p style="margin:0">We accept exchanges and returns. Add the exact rules here (number of days, bill
+                        needed, tags intact).</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <!-- Community & Weekly Drop Banner in Footer -->
+        <div class="footer-cta-strip">
+            <div class="wrap footer-cta-wrap">
+                <div class="footer-cta-text">
+                    <span class="footer-badge">Weekly Fresh Stock</span>
+                    <h3>Never miss a fresh drop at Devichowk.</h3>
+                    <p>New casuals, party shirts, and denims arrive every week. Connect with us on WhatsApp for instant stock updates.</p>
+                </div>
+                <div class="footer-cta-actions">
+                    <a class="btn footer-wa-btn" id="footerWaBtn" href="#" target="_blank" rel="noopener">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
+                        <span>Join WhatsApp Community</span>
+                    </a>
+                    <a class="btn footer-dir-btn" id="footerDirBtn" target="_blank" rel="noopener" href="#">
+                        <span>Get Directions</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Footer Links Grid -->
+        <div class="wrap footer-main-grid">
+            <!-- Brand Column -->
+            <div class="footer-col footer-col-brand">
+                <a class="brand footer-brand" href="#top">
+                    <img src="photo.jpg" alt="JDI Garments" class="logo footer-logo">
+                    <span>JDI GARMENTS</span>
+                </a>
+                <p class="footer-brand-desc">The Fashion Destination for modern men's wear. Curated collections of summer wear, party wear, and everyday essentials picked fresh every week near Devichowk.</p>
+                <div class="footer-store-features">
+                    <div class="footer-feat-item">
+                        <span class="feat-icon">🏷️</span>
+                        <span>Weekly New Stock &amp; Fresh Drops</span>
+                    </div>
+                    <div class="footer-feat-item">
+                        <span class="feat-icon">📍</span>
+                        <span>In-Store Pickup Near Devichowk</span>
+                    </div>
+                    <div class="footer-feat-item">
+                        <span class="feat-icon">💬</span>
+                        <span>Direct 1-Click WhatsApp Ordering</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collections Column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Collections</h4>
+                <ul class="footer-links">
+                    <li><a href="#shop" data-type-target="Summer Wear">☀️ Summer Wear</a></li>
+                    <li><a href="#shop" data-type-target="Party Wear">✨ Party Wear</a></li>
+                    <li><a href="#shop" data-type-target="Daily Wear">👕 Daily Wear</a></li>
+                    <li><a href="#btnNewArrivals" id="footerLinkLookbook">⚡ Featured Outfit Frames</a></li>
+                    <li><a href="#top">🔥 New Weekly Drops</a></li>
+                </ul>
+            </div>
+
+            <!-- Visit Store Column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Store &amp; Hours</h4>
+                <div class="footer-contact-info">
+                    <div class="footer-info-row">
+                        <span class="info-icon">📍</span>
+                        <div><strong>JDI Garments</strong><br>Near Devichowk, Main Road</div>
+                    </div>
+                    <div class="footer-info-row">
+                        <span class="info-icon">🕒</span>
+                        <div><strong>Opening Hours</strong><br>Every Day: 10:00 AM – 10:00 PM</div>
+                    </div>
+                    <div class="footer-info-row">
+                        <span class="info-icon">🛍️</span>
+                        <div><strong>Store Pickup</strong><br>Reserve online, pay &amp; collect at store</div>
+                    </div>
+                    <div class="footer-quick-btns">
+                        <a class="footer-pill-btn" id="footerCallLink" href="#">📞 Call Store</a>
+                        <a class="footer-pill-btn" id="footerMapLink" target="_blank" rel="noopener" href="#">🗺️ Open Map</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Service Column -->
+            <div class="footer-col">
+                <h4 class="footer-col-title">Service &amp; Help</h4>
+                <ul class="footer-links">
+                    <li><a href="#policy">🔄 Exchange &amp; Return Policy</a></li>
+                    <li><a href="#visit">🏢 Store Showroom Showcase</a></li>
+                    <li><a href="#shop">🛒 Browse All Outfits</a></li>
+                    <li><a id="footerWaSupport" href="#" target="_blank" rel="noopener">💬 WhatsApp Order Help</a></li>
+                </ul>
+                <div class="footer-payment-badge">
+                    <span class="pay-title">Payment at Store:</span>
+                    <span class="pay-methods">Cash · UPI (GPay/PhonePe/Paytm) · Cards</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Bottom Bar -->
+        <div class="footer-bottom-bar">
+            <div class="wrap footer-bottom-wrap">
+                <div class="footer-copy">
+                    © 2026 <strong>JDI Garments</strong> · Near Devichowk. All rights reserved.
+                </div>
+                <div class="footer-bottom-links">
+                    <span>The Fashion Destination</span>
+                    <span class="dot-sep">·</span>
+                    <a href="#policy">Policy</a>
+                    <span class="dot-sep">·</span>
+                    <a href="#top" class="back-to-top" id="backToTop">Back to Top ↑</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Quick Thumb Navigation Bar (Phones <= 768px) -->
+    <nav class="mobile-nav-bar" id="mobileNavBar" aria-label="Mobile Navigation">
+        <a href="#top" class="mobile-nav-btn" id="mNavHome">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Home</span>
+        </a>
+        <a href="#shop" class="mobile-nav-btn" id="mNavFrames">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Outfits</span>
+        </a>
+        <a href="#visit" class="mobile-nav-btn" id="mNavStore">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span>Store</span>
+        </a>
+        <a id="mobileWaOrder" href="#" target="_blank" rel="noopener" class="mobile-nav-btn wa-highlight">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
+            <span>WhatsApp</span>
+        </a>
+    </nav>
+
+    <a class="btn wa fab" id="fab" href="#" target="_blank" rel="noopener">Chat on WhatsApp</a>
+
+    <dialog id="dlg" aria-label="Product details">
+        <button class="x" id="close" aria-label="Close">×</button>
+        <div class="dlg" id="dbody"></div>
+    </dialog>
+
+    <!-- Admin Store Showcase Photos Modal -->
+    <dialog id="adminStoreDlg" aria-label="Manage Store Showcase Photos">
+        <button class="x" id="closeAdminStoreDlg" aria-label="Close">×</button>
+        <div class="dlg admin-dlg-body">
+            <div>
+                <h3 style="margin:0 0 4px">Manage Store Showcase Photos</h3>
+                <p class="sub" style="margin:0 0 14px;font-size:0.85rem">Update photos on the right and down. You can enter an image URL or choose a photo file from your device.</p>
+            </div>
+            
+            <form id="adminStoreForm" class="admin-store-form">
+                <div class="admin-field-group">
+                    <label><strong>Right Top Featured Photo</strong></label>
+                    <input type="text" id="inputStoreMainUrl" placeholder="Image URL (e.g. store_main.jpg)" class="admin-input">
+                    <input type="file" id="fileStoreMain" accept="image/*" class="admin-file-input">
+                </div>
+
+                <div class="admin-field-group">
+                    <label><strong>Down Photo 1 (Left - Fit Lounge)</strong></label>
+                    <input type="text" id="inputStoreDown1Url" placeholder="Image URL (e.g. store_interior.jpg)" class="admin-input">
+                    <input type="file" id="fileStoreDown1" accept="image/*" class="admin-file-input">
+                </div>
+
+                <div class="admin-field-group">
+                    <label><strong>Down Photo 2 (Center - JDI's Choice)</strong></label>
+                    <input type="text" id="inputStoreDown2Url" placeholder="Image URL (e.g. store_rack.jpg)" class="admin-input">
+                    <input type="file" id="fileStoreDown2" accept="image/*" class="admin-file-input">
+                </div>
+
+                <div class="admin-field-group">
+                    <label><strong>Down Photo 3 (Right - Denim Wall)</strong></label>
+                    <input type="text" id="inputStoreDown3Url" placeholder="Image URL (e.g. store_denim.jpg)" class="admin-input">
+                    <input type="file" id="fileStoreDown3" accept="image/*" class="admin-file-input">
+                </div>
+
+                <div class="btns" style="margin-top:12px">
+                    <button type="submit" class="btn primary">Save Photos</button>
+                    <button type="button" id="btnResetStoreImgs" class="btn ghost" style="color:var(--ink)">Reset to Default Photos</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

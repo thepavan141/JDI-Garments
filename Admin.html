@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="noindex">
+    <title>JDI Garmets – Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .field {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 12px
+        }
+
+        .field label {
+            font-weight: 600;
+            font-size: .92rem
+        }
+
+        .field input[type=text],
+        .field input[type=number],
+        .field input[type=email],
+        .field input[type=password] {
+            padding: 11px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font: inherit;
+            background: var(--surface);
+            color: var(--ink);
+            width: 100%
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        .checks {
+            display: flex;
+            gap: 18px;
+            margin-bottom: 12px
+        }
+
+        .checks label {
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        .thumbs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px
+        }
+
+        .thumbs button {
+            position: relative;
+            width: 64px;
+            height: 80px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #eee center/cover no-repeat;
+            cursor: pointer;
+            padding: 0
+        }
+
+        .thumbs button::after {
+            content: "×";
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            color: #fff;
+            background: #000;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            font-size: 13px
+        }
+
+        .msg {
+            min-height: 1.4em;
+            font-weight: 600
+        }
+
+        .msg.err {
+            color: var(--tape)
+        }
+
+        .item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px
+        }
+
+        .item .t {
+            width: 56px;
+            height: 70px;
+            border-radius: 6px;
+            background: #eee center/cover no-repeat;
+            flex: none
+        }
+
+        .item .m {
+            flex: 1;
+            min-width: 0
+        }
+
+        .item .m strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .acts {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .sm {
+            padding: 7px 10px;
+            font-size: .85rem;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600
+        }
+
+        .sm.danger {
+            color: var(--tape);
+            border-color: var(--tape)
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap" style="padding-top:20px;padding-bottom:60px;max-width:720px">
+        <div class="top">
+            <h2 style="margin:0;color:var(--tape)">JDI Garmets Admin</h2><button class="sm" id="logout" hidden>Log
+                out</button>
+        </div>
+
+        <div id="login" class="box" hidden>
+            <h3>Owner login</h3>
+            <form id="loginForm">
+                <div class="field"><label for="email">Email</label><input id="email" type="email"
+                        autocomplete="username" required></div>
+                <div class="field"><label for="pw">Password</label><input id="pw" type="password"
+                        autocomplete="current-password" required></div>
+                <button class="btn primary" type="submit">Log in</button>
+                <p class="msg err" id="lerr"></p>
+            </form>
+        </div>
+
+        <div id="app" hidden>
+            <div class="box" style="margin-bottom:20px">
+                <h3 id="ftitle">Add product</h3>
+                <form id="pform">
+                    <div class="field"><label for="name">Product name</label><input id="name" type="text" required>
+                    </div>
+                    <div class="field"><label for="category">Category</label><input id="category" type="text"
+                            list="cats" placeholder="Shirts, Jeans, T-shirts…" required><datalist id="cats"></datalist>
+                    </div>
+                    <div class="row2">
+                        <div class="field"><label for="price">Selling price (₹)</label><input id="price" type="number"
+                                min="0" step="1" required></div>
+                        <div class="field"><label for="oprice">Original price (₹, optional)</label><input id="oprice"
+                                type="number" min="0" step="1"></div>
+                    </div>
+                    <div class="field"><label for="sizes">Sizes (separate with commas)</label><input id="sizes"
+                            type="text" placeholder="S, M, L, XL"></div>
+                    <div class="field"><label for="colors">Colours (separate with commas)</label><input id="colors"
+                            type="text" placeholder="Black, Blue"></div>
+                    <div class="field"><label for="files">Photos</label><input id="files" type="file" accept="image/*"
+                            multiple>
+                        <div class="thumbs" id="thumbs"></div>
+                    </div>
+                    <div class="checks">
+                        <label><input type="checkbox" id="instock" checked> In stock</label>
+                        <label><input type="checkbox" id="isnew"> New arrival</label>
+                    </div>
+                    <div class="btns">
+                        <button class="btn primary" type="submit" id="save">Save product</button>
+                        <button class="btn ghost" type="button" id="cancel" hidden style="color:var(--ink)">Cancel
+                            edit</button>
+                    </div>
+                    <p class="msg" id="msg"></p>
+                </form>
+            </div>
+            <h3 id="count">Products</h3>
+            <div id="list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>
