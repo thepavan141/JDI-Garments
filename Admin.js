@@ -14,8 +14,9 @@ const csv = v => v.split(",").map(x => x.trim()).filter(Boolean);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const pathFromUrl = u => decodeURIComponent(u.split("/" + BUCKET + "/")[1] || "");
 
-/* ---------- auth ---------- */
-sb.auth.getSession().then(({ data }) => show(!!data.session));
+sb.auth.getSession()
+    .then(({ data }) => show(!!(data && data.session)))
+    .catch(() => show(false));
 $("#loginForm").onsubmit = async e => {
     e.preventDefault();
     $("#lerr").textContent = "";
