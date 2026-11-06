@@ -592,7 +592,7 @@ window.addEventListener("scroll", () => {
     }
 }, { passive: true });
 
-/* ===== PROMOTIONAL BANNER SLIDER ===== */
+/* ===== PROMOTIONAL ANNOUNCEMENT TICKER BANNER ===== */
 (function initPromoBanner() {
     const track = document.getElementById("promoTrack");
     const slider = document.getElementById("promoSlider");
@@ -600,50 +600,60 @@ window.addEventListener("scroll", () => {
     const nextBtn = document.getElementById("promoNext");
     const banner = document.getElementById("promoBanner");
 
-    if (!track) return;
-    const items = track.querySelectorAll(".promo-item");
-    if (items.length <= 1) return;
+    if (!track || !slider) return;
 
-    let current = 0;
-    let isAnimating = false;
-    let timer = null;
+    let manualShift = 0;
+    let manualTimer = null;
 
-    function goTo(next, direction = 1) {
-        if (isAnimating) return;
-        isAnimating = true;
+    function nudge(dir) {
+        track.classList.add("paused");
+        clearTimeout(manualTimer);
 
-        const currentItem = items[current];
-        const nextItem = items[next];
+        const halfWidth = track.scrollWidth / 2 || 350;
+        manualShift += dir * 160;
+        if (manualShift < 0) manualShift += halfWidth;
+        if (manualShift >= halfWidth) manualShift -= halfWidth;
 
-        currentItem.classList.remove("active");
-        currentItem.classList.add(direction > 0 ? "leaving-up" : "leaving-down");
+        track.style.transition = "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)";
+        track.style.transform = `translate3d(-${manualShift}px, 0, 0)`;
 
-        setTimeout(() => {
-            currentItem.classList.remove("leaving-up", "leaving-down");
-            nextItem.classList.add("active");
-            current = next;
-            isAnimating = false;
-        }, 250);
+        manualTimer = setTimeout(() => {
+            track.style.transition = "";
+            track.classList.remove("paused");
+            manualTimer = null;
+        }, 3200);
     }
 
-    function nextOffer() { goTo((current + 1) % items.length, 1); }
-    function prevOffer() { goTo((current - 1 + items.length) % items.length, -1); }
+    if (nextBtn) {
+        nextBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            nudge(1);
+        });
+    }
 
-    function startTimer() { stopTimer(); timer = setInterval(nextOffer, 3500); }
-    function stopTimer() { if (timer) clearInterval(timer); }
-
-    if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); nextOffer(); startTimer(); });
-    if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); prevOffer(); startTimer(); });
-    if (slider) slider.addEventListener("click", () => { nextOffer(); startTimer(); });
+    if (prevBtn) {
+        prevBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            nudge(-1);
+        });
+    }
 
     if (banner) {
-        banner.addEventListener("mouseenter", stopTimer);
-        banner.addEventListener("mouseleave", startTimer);
-        banner.addEventListener("touchstart", stopTimer, { passive: true });
-        banner.addEventListener("touchend", startTimer, { passive: true });
+        banner.addEventListener("mouseenter", () => {
+            if (!manualTimer) track.classList.add("paused");
+        });
+        banner.addEventListener("mouseleave", () => {
+            if (!manualTimer) track.classList.remove("paused");
+        });
+        banner.addEventListener("touchstart", () => {
+            if (!manualTimer) track.classList.add("paused");
+        }, { passive: true });
+        banner.addEventListener("touchend", () => {
+            setTimeout(() => {
+                if (!manualTimer) track.classList.remove("paused");
+            }, 1500);
+        }, { passive: true });
     }
-
-    startTimer();
 })();
 
 /* ===== MOTION BANNER ===== */

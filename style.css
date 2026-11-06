@@ -79,81 +79,86 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 38px;
-    padding: 0 12px;
+    height: 36px;
+    padding: 0 8px;
     font-weight: 700;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     position: relative;
     user-select: none;
+    overflow: hidden;
+    width: 100%;
 }
 
 .promo-nav {
     background: transparent;
     border: none;
     color: var(--tape);
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     line-height: 1;
     cursor: pointer;
-    padding: 4px 8px;
-    opacity: 0.7;
-    transition: opacity 0.15s, transform 0.15s;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    opacity: 0.85;
+    transition: opacity 0.15s, transform 0.15s, background-color 0.15s;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    z-index: 2;
 }
 
 .promo-nav:hover,
 .promo-nav:focus-visible {
     opacity: 1;
-    transform: scale(1.2);
+    background: rgba(200, 35, 85, 0.08);
+    transform: scale(1.1);
     outline: none;
 }
 
 .promo-slider {
     flex: 1;
-    max-width: 680px;
     height: 100%;
     position: relative;
     overflow: hidden;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin: 0 4px;
+    mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
 }
 
 .promo-track {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    white-space: nowrap;
+    will-change: transform;
+    animation: promoTicker 24s linear infinite;
+}
+
+.promo-track.paused,
+.promo-slider:hover .promo-track,
+.promo-slider:active .promo-track {
+    animation-play-state: paused;
+}
+
+@keyframes promoTicker {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .promo-item {
-    position: absolute;
-    width: 100%;
-    text-align: center;
+    display: inline-block;
+    padding: 0 10px;
+    color: var(--tape);
+    font-weight: 700;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-    pointer-events: none;
 }
 
-.promo-item.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-.promo-item.leaving-up {
-    opacity: 0;
-    transform: translateY(-14px);
-}
-
-.promo-item.leaving-down {
-    opacity: 0;
-    transform: translateY(14px);
+.promo-dot {
+    display: inline-block;
+    opacity: 0.5;
+    padding: 0 2px;
 }
 
 /* Header & Search */
@@ -170,6 +175,11 @@ header .wrap.header-row {
     gap: 20px;
     padding-top: 12px;
     padding-bottom: 12px;
+}
+
+/* On desktop, keep nav and search as direct flex items */
+.header-nav-group {
+    display: contents;
 }
 
 .brand {
@@ -1877,21 +1887,121 @@ dialog::backdrop {
         padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     }
 
+    /* Announcement banner height & padding on mobile */
+    .announce {
+        height: 34px;
+        padding: 0 6px;
+        font-size: 0.78rem;
+    }
+
+    .promo-nav {
+        width: 26px;
+        height: 26px;
+        font-size: 1.25rem;
+    }
+
+    /* Mobile Header Layout: Logo clearly visible, Search + Nav in a single horizontal row */
     header .wrap.header-row {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding-top: 10px;
-        padding-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        height: 34px;
+    }
+
+    .brand .logo {
+        height: 32px;
+        max-height: 34px;
+        max-width: 150px;
+        width: auto;
+    }
+
+    .header-nav-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
     }
 
     .nav-search {
-        order: 3;
-        flex-basis: 100%;
-        max-width: 100%;
+        position: relative;
+        flex: 0 1 125px;
+        min-width: 100px;
+        max-width: 145px;
+        margin: 0;
+        transition: flex 0.25s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-search:focus-within {
+        flex: 1 1 180px;
+        max-width: 210px;
+    }
+
+    .nav-search input {
+        height: 32px;
+        font-size: 0.8rem;
+        padding: 4px 22px 4px 28px;
+    }
+
+    .nav-search-icon {
+        left: 8px;
+        width: 14px;
+        height: 14px;
+    }
+
+    .search-clear-btn {
+        right: 8px;
+        width: 18px;
+        height: 18px;
+        font-size: 12px;
+    }
+
+    nav[aria-label="Main Navigation"] {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        padding: 2px 0;
+        margin: 0;
+    }
+
+    nav[aria-label="Main Navigation"]::-webkit-scrollbar {
+        display: none;
+    }
+
+    nav[aria-label="Main Navigation"] a {
+        color: var(--ink-secondary);
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: color 0.15s, background-color 0.15s;
+        flex-shrink: 0;
+    }
+
+    nav[aria-label="Main Navigation"] a:hover,
+    nav[aria-label="Main Navigation"] a:active {
+        color: var(--tape);
+        background: rgba(200, 35, 85, 0.06);
     }
 
     html {
-        scroll-padding-top: calc(140px + env(safe-area-inset-top, 0px));
+        scroll-padding-top: calc(125px + env(safe-area-inset-top, 0px));
     }
 
     /* Horizontal Swipeable Product Reel on Mobile */
@@ -2057,6 +2167,24 @@ dialog::backdrop {
         flex-direction: column;
         text-align: center;
         gap: 8px;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+    header .wrap.header-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+    }
+    .header-nav-group {
+        flex: 1;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+    .nav-search {
+        flex: 0 1 180px;
+        max-width: 220px;
     }
 }
 

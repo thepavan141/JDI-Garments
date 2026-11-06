@@ -15,15 +15,24 @@
     <div class="pinned-top">
         <!-- Promotional Top Announcement Bar -->
         <div class="announce" id="promoBanner" aria-live="polite">
-            <button class="promo-nav" id="promoPrev" aria-label="Previous offer" type="button">&#8249;</button>
+            <button class="promo-nav" id="promoPrev" aria-label="Previous announcement" type="button">&#8249;</button>
             <div class="promo-slider" id="promoSlider">
                 <div class="promo-track" id="promoTrack">
-                    <span class="promo-item active">Get 10% off on your first purchase</span>
+                    <span class="promo-item">Get 10% off on your first purchase</span>
+                    <span class="promo-dot">•</span>
                     <span class="promo-item">Special offer: ₹300 off on orders above ₹2,500</span>
+                    <span class="promo-dot">•</span>
                     <span class="promo-item">New stock drops every week · In-store pickup near Devichowk</span>
+                    <span class="promo-dot">•</span>
+                    <span class="promo-item" aria-hidden="true">Get 10% off on your first purchase</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
+                    <span class="promo-item" aria-hidden="true">Special offer: ₹300 off on orders above ₹2,500</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
+                    <span class="promo-item" aria-hidden="true">New stock drops every week · In-store pickup near Devichowk</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
                 </div>
             </div>
-            <button class="promo-nav" id="promoNext" aria-label="Next offer" type="button">&#8250;</button>
+            <button class="promo-nav" id="promoNext" aria-label="Next announcement" type="button">&#8250;</button>
         </div>
 
         <!-- Sticky Header Bar -->
@@ -33,23 +42,25 @@
                     <img src="photo.jpg" alt="JDI Garments" class="logo">
                 </a>
 
-                <!-- Search Bar -->
-                <div class="nav-search">
-                    <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input id="q" type="search" placeholder="Search shirts, jeans, kurtas, colors…" aria-label="Search products">
-                    <button type="button" class="search-clear-btn" id="clearSearch" aria-label="Clear search" hidden>×</button>
-                </div>
+                <div class="header-nav-group">
+                    <!-- Search Bar -->
+                    <div class="nav-search">
+                        <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input id="q" type="search" placeholder="Search shirts, jeans, kurtas, colors…" aria-label="Search products">
+                        <button type="button" class="search-clear-btn" id="clearSearch" aria-label="Clear search" hidden>×</button>
+                    </div>
 
-                <!-- Navigation Links -->
-                <nav aria-label="Main Navigation">
-                    <a href="#shop">Outfits</a>
-                    <a href="#visit">Store Visit</a>
-                    <a href="#policy">Exchange Policy</a>
-                </nav>
+                    <!-- Navigation Links -->
+                    <nav aria-label="Main Navigation">
+                        <a href="#shop">Outfits</a>
+                        <a href="#visit">Store Visit</a>
+                        <a href="#policy">Exchange Policy</a>
+                    </nav>
+                </div>
             </div>
         </header>
     </div>
