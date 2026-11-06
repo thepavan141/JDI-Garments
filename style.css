@@ -277,24 +277,30 @@ nav[aria-label="Main Navigation"] a:hover {
 
 /* ===== HERO MOTION BANNER ===== */
 .banner-section {
-    padding: 0;
+    padding: 18px 0 10px;
 }
 
 .motion-banner {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 7;
-    max-height: 640px;
-    border-radius: 0;
+    aspect-ratio: 16 / 6.2;
+    max-height: 460px;
+    border-radius: 20px;
     overflow: hidden;
-    background: #111;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
+    background: #0f172a;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .motion-slides {
     position: relative;
     width: 100%;
     height: 100%;
+    border-radius: inherit;
+    overflow: hidden;
 }
 
 .motion-slide {
@@ -304,9 +310,11 @@ nav[aria-label="Main Navigation"] a:hover {
     height: 100%;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.75s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     pointer-events: none;
+    border-radius: inherit;
+    will-change: opacity;
 }
 
 .motion-slide.active {
@@ -319,9 +327,12 @@ nav[aria-label="Main Navigation"] a:hover {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
     transform-origin: center center;
     will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .motion-slide:nth-child(1).active .banner-img {
@@ -1820,11 +1831,36 @@ dialog::backdrop {
 }
 
 @media (max-width: 768px) {
-    /* Mobile motion banner size */
+    /* Mobile motion banner: perfect fit & curved edges */
+    .banner-section {
+        padding: 12px 0 6px;
+    }
+
     .motion-banner {
-        aspect-ratio: 4 / 3;
-        min-height: 280px;
-        max-height: 460px;
+        aspect-ratio: 16 / 6.5;
+        min-height: 140px;
+        max-height: 240px;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .banner-arrow {
+        display: none !important;
+    }
+
+    .banner-dots {
+        bottom: 8px;
+        padding: 3px 8px;
+        gap: 5px;
+    }
+
+    .banner-dots .dot {
+        width: 14px;
+        height: 3.5px;
+    }
+
+    .banner-dots .dot.active {
+        width: 24px;
     }
 
     /* Mobile bottom bar appears */
@@ -2025,6 +2061,13 @@ dialog::backdrop {
 }
 
 @media (max-width: 480px) {
+    .banner-section .wrap {
+        padding: 0 14px;
+    }
+    .motion-banner {
+        border-radius: 14px;
+        aspect-ratio: 16 / 6.5;
+    }
     .announce {
         font-size: 0.78rem;
         height: 34px;

@@ -661,20 +661,20 @@ window.addEventListener("scroll", () => {
     let timer = null;
     let isTransitioning = false;
 
-    function applyRandomMotion(slide) {
+    function animateSlideImg(slide) {
         const img = slide.querySelector(".banner-img");
         if (!img) return;
-
-        img.style.animation = "none";
-        const scale = (1.04 + Math.random() * 0.045).toFixed(3);
-        const driftX = ((Math.random() - 0.5) * 5).toFixed(2);
-        const driftY = ((Math.random() - 0.5) * 4).toFixed(2);
-        const duration = (6 + Math.random() * 3).toFixed(1);
-
-        img.style.transition = `transform ${duration}s cubic-bezier(0.25, 1, 0.5, 1)`;
+        img.style.transition = "transform 6s cubic-bezier(0.25, 1, 0.5, 1)";
         requestAnimationFrame(() => {
-            img.style.transform = `scale(${scale}) translate(${driftX}%, ${driftY}%)`;
+            img.style.transform = "scale(1.04) translate3d(0, 0, 0)";
         });
+    }
+
+    function resetSlideImg(slide) {
+        const img = slide.querySelector(".banner-img");
+        if (!img) return;
+        img.style.transition = "transform 0.6s ease-out";
+        img.style.transform = "scale(1) translate3d(0, 0, 0)";
     }
 
     function showSlide(index) {
@@ -685,25 +685,21 @@ window.addEventListener("scroll", () => {
         const nextSlide = slides[index];
 
         prevSlide.classList.remove("active");
-        const prevImg = prevSlide.querySelector(".banner-img");
-        if (prevImg) {
-            prevImg.style.transition = "transform 0.8s ease-out";
-            prevImg.style.transform = "scale(1) translate(0%, 0%)";
-        }
+        resetSlideImg(prevSlide);
 
         nextSlide.classList.add("active");
-        applyRandomMotion(nextSlide);
+        animateSlideImg(nextSlide);
 
         dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
         currentIndex = index;
 
-        setTimeout(() => { isTransitioning = false; }, 800);
+        setTimeout(() => { isTransitioning = false; }, 750);
     }
 
     function nextBanner() { showSlide((currentIndex + 1) % slides.length); }
     function prevBanner() { showSlide((currentIndex - 1 + slides.length) % slides.length); }
 
-    function startTimer() { stopTimer(); timer = setInterval(nextBanner, 4800); }
+    function startTimer() { stopTimer(); timer = setInterval(nextBanner, 4500); }
     function stopTimer() { if (timer) clearInterval(timer); }
 
     if (nextBtn) nextBtn.addEventListener("click", () => { nextBanner(); startTimer(); });
@@ -711,12 +707,20 @@ window.addEventListener("scroll", () => {
 
     dots.forEach((dot, i) => dot.addEventListener("click", () => { showSlide(i); startTimer(); }));
 
-    // Touch swipe support
+    // Smooth Touch swipe support for mobile
     let touchStartX = 0;
-    banner.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; stopTimer(); }, { passive: true });
+    let touchStartY = 0;
+    banner.addEventListener("touchstart", e => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        stopTimer();
+    }, { passive: true });
+
     banner.addEventListener("touchend", e => {
         const diffX = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(diffX) > 40) {
+        const diffY = e.changedTouches[0].clientY - touchStartY;
+        // Detect clean horizontal swipe over vertical scroll
+        if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
             if (diffX < 0) nextBanner();
             else prevBanner();
         }
@@ -726,19 +730,21 @@ window.addEventListener("scroll", () => {
     banner.addEventListener("mouseenter", stopTimer);
     banner.addEventListener("mouseleave", startTimer);
 
-    // Subtle parallax motion
-    banner.addEventListener("mousemove", e => {
-        const activeSlide = slides[currentIndex];
-        const img = activeSlide ? activeSlide.querySelector(".banner-img") : null;
-        if (!img) return;
-        const rect = banner.getBoundingClientRect();
-        const normX = (e.clientX - rect.left) / rect.width - 0.5;
-        const normY = (e.clientY - rect.top) / rect.height - 0.5;
-        img.style.transition = "transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)";
-        img.style.transform = `scale(1.05) translate(${(normX * -2.5).toFixed(2)}%, ${(normY * -2.5).toFixed(2)}%)`;
-    });
+    // Subtle desktop-only mouse parallax
+    if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        banner.addEventListener("mousemove", e => {
+            const activeSlide = slides[currentIndex];
+            const img = activeSlide ? activeSlide.querySelector(".banner-img") : null;
+            if (!img) return;
+            const rect = banner.getBoundingClientRect();
+            const normX = (e.clientX - rect.left) / rect.width - 0.5;
+            const normY = (e.clientY - rect.top) / rect.height - 0.5;
+            img.style.transition = "transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)";
+            img.style.transform = `scale(1.04) translate3d(${(normX * -2).toFixed(2)}%, ${(normY * -1.5).toFixed(2)}%, 0)`;
+        });
+    }
 
-    applyRandomMotion(slides[0]);
+    animateSlideImg(slides[0]);
     startTimer();
 })();
 
