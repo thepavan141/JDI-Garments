@@ -1,51 +1,536 @@
 /* ===== SHOP SETTINGS: replace with the real details ===== */
 const SHOP = {
     name: "JDI Garments",
-    whatsapp: "91XXXXXXXXXX",          // order number, with country code, no + or spaces
-    phone: "+91XXXXXXXXXX",
+    whatsapp: "91XXXXXXXXXX",          // order WhatsApp number, with country code (e.g. 919876543210)
+    phone: "+91XXXXXXXXXX",             // Shop phone number
     communityLink: "",                  // WhatsApp community invite link
-    mapQuery: "JDI Garments Devichowk"   // replace with the exact Google Maps place name
+    mapQuery: "JDI Garments Devichowk"   // Google Maps search query
 };
 
-/* ===== PRODUCTS DATA (Loaded dynamically from Admin & Supabase) ===== */
+/* ===== STATE & UTILITIES ===== */
 let products = [];
+let cat = "All";
+let term = "";
+let isLoading = true;
 
 const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const toArray = val => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === "string") {
+        const trimmed = val.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return trimmed ? trimmed.split(",").map(x => x.trim()).filter(Boolean) : [];
+    }
+    return [];
+};
+
+const capitalize = s => {
+    if (!s) return "";
+    return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
 const rupee = n => "₹" + Number(n || 0).toLocaleString("en-IN");
+
 const priceHTML = p => {
-    let h = rupee(p.price);
-    if (p.original_price && p.original_price > p.price) {
+    let h = `<strong>${rupee(p.price)}</strong>`;
+    if (p.original_price && Number(p.original_price) > Number(p.price)) {
         const pct = Math.round((1 - p.price / p.original_price) * 100);
         h += `<span class="was">${rupee(p.original_price)}</span><span class="off">${pct}% OFF</span>`;
     }
     return h;
 };
-const wa = text => `https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(text)}`;
-let cat = "All", term = "";
 
-/* links */
+const wa = text => {
+    const cleanNumber = (SHOP.whatsapp || "").replace(/\D/g, "");
+    const targetNumber = cleanNumber.length >= 10 ? cleanNumber : "91XXXXXXXXXX";
+    return `https://wa.me/${targetNumber}?text=${encodeURIComponent(text)}`;
+};
+
+/* ===== EXTERNAL LINKS SETUP ===== */
 const mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(SHOP.mapQuery);
 const telUrl = "tel:" + SHOP.phone;
 
 const dirEl = $("#dir"); if (dirEl) dirEl.href = mapUrl;
 const callEl = $("#call"); if (callEl) callEl.href = telUrl;
-const fabEl = $("#fab"); if (fabEl) fabEl.href = wa("Hi " + SHOP.name + ", I have a question.");
+const fabEl = $("#fab"); if (fabEl) fabEl.href = wa(`Hi ${SHOP.name}, I want to enquire about outfits at your Devichowk store.`);
+
 const jc = $("#joinCommunity");
 if (jc) {
-    if (SHOP.communityLink) jc.href = SHOP.communityLink;
-    else jc.href = wa("Hi " + SHOP.name + ", please add me to your WhatsApp community for weekly stock drops.");
+    jc.href = SHOP.communityLink || wa(`Hi ${SHOP.name}, please add me to your WhatsApp community for weekly stock drops.`);
 }
 
 // Footer links
-const footerWaBtn = $("#footerWaBtn"); if (footerWaBtn) footerWaBtn.href = SHOP.communityLink || wa("Hi " + SHOP.name + ", I want to join the WhatsApp community for weekly fresh drops.");
+const footerWaBtn = $("#footerWaBtn"); if (footerWaBtn) footerWaBtn.href = SHOP.communityLink || wa(`Hi ${SHOP.name}, I want to join the WhatsApp community for weekly fresh drops.`);
 const footerDirBtn = $("#footerDirBtn"); if (footerDirBtn) footerDirBtn.href = mapUrl;
 const footerCallLink = $("#footerCallLink"); if (footerCallLink) footerCallLink.href = telUrl;
 const footerMapLink = $("#footerMapLink"); if (footerMapLink) footerMapLink.href = mapUrl;
-const footerWaSupport = $("#footerWaSupport"); if (footerWaSupport) footerWaSupport.href = wa("Hi " + SHOP.name + ", I need assistance with an order or product enquiry.");
-const mobileWaOrder = $("#mobileWaOrder"); if (mobileWaOrder) mobileWaOrder.href = wa("Hi " + SHOP.name + ", I want to check available outfits at your Devichowk store.");
+const footerWaSupport = $("#footerWaSupport"); if (footerWaSupport) footerWaSupport.href = wa(`Hi ${SHOP.name}, I need assistance with an order or product enquiry.`);
+const mobileWaOrder = $("#mobileWaOrder"); if (mobileWaOrder) mobileWaOrder.href = wa(`Hi ${SHOP.name}, I want to check available outfits at your Devichowk store.`);
 
-// Footer collection links click handler (filters by category)
+/* Check if Admin Mode is requested via URL (?admin=1) */
+const isAdminMode = new URLSearchParams(window.location.search).has("admin") || localStorage.getItem("jdi_is_admin") === "true";
+const btnOpenAdminStore = $("#btnOpenAdminStore");
+if (btnOpenAdminStore && isAdminMode) {
+    btnOpenAdminStore.style.display = "inline-flex";
+}
+
+/* Category icons helper */
+function getCategoryIcon(c) {
+    if (c === "All") return "✦ ";
+    const lower = c.toLowerCase();
+    if (lower.includes("summer")) return "☀️ ";
+    if (lower.includes("party")) return "✨ ";
+    if (lower.includes("shirt")) return "👔 ";
+    if (lower.includes("jean") || lower.includes("pant") || lower.includes("trouser") || lower.includes("denim")) return "👖 ";
+    if (lower.includes("t-shirt") || lower.includes("tshirt") || lower.includes("tee")) return "👕 ";
+    if (lower.includes("daily")) return "👕 ";
+    if (lower.includes("kurta") || lower.includes("ethnic")) return "🥻 ";
+    return "❖ ";
+}
+
+/* ===== SKELETON LOADING SHIMMER ===== */
+function renderSkeletons() {
+    const gridEl = $("#grid");
+    if (!gridEl) return;
+    gridEl.innerHTML = Array.from({ length: 4 }).map(() => `
+        <div class="product-skeleton-card" aria-hidden="true">
+            <div class="skeleton-img skeleton-pulse"></div>
+            <div class="skeleton-info">
+                <div class="skeleton-line skeleton-tag skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-title skeleton-pulse"></div>
+                <div class="skeleton-line skeleton-price skeleton-pulse"></div>
+                <div class="skeleton-btn skeleton-pulse"></div>
+            </div>
+        </div>
+    `).join("");
+}
+
+/* ===== CATEGORY CHIPS RENDERING ===== */
+function renderChips() {
+    const chipsEl = $("#chips");
+    if (!chipsEl) return;
+
+    const dynamicCats = [...new Set(products.map(p => p.category ? capitalize(p.category.trim()) : "").filter(Boolean))];
+    const cats = ["All", ...dynamicCats];
+
+    chipsEl.innerHTML = cats.map(c => {
+        const isCurrent = c.toLowerCase() === cat.toLowerCase();
+        const icon = getCategoryIcon(c);
+        const count = c === "All" ? products.length : products.filter(p => (p.category || "").toLowerCase() === c.toLowerCase()).length;
+
+        return `
+        <button class="chip chip-type ${isCurrent ? "active" : ""}" aria-pressed="${isCurrent}" data-c="${esc(c)}">
+            <span class="chip-icon">${icon}</span>${esc(c)} <span class="chip-count">(${count})</span>
+        </button>`;
+    }).join("");
+}
+
+/* ===== PRODUCTS GRID RENDERING ===== */
+function render() {
+    const gridEl = $("#grid");
+    const emptyEl = $("#empty");
+    if (!gridEl) return;
+
+    if (isLoading) {
+        renderSkeletons();
+        return;
+    }
+
+    const filtered = products.filter(p => {
+        const pCat = capitalize(p.category || "");
+        const matchesCat = (cat === "All" || pCat.toLowerCase() === cat.toLowerCase());
+
+        const searchBlob = [
+            p.name,
+            p.category,
+            p.style,
+            p.guide,
+            toArray(p.sizes).join(" "),
+            toArray(p.colors).join(" ")
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        const matchesTerm = !term || searchBlob.includes(term);
+        return matchesCat && matchesTerm;
+    });
+
+    if (emptyEl) {
+        emptyEl.hidden = filtered.length > 0;
+    }
+
+    if (filtered.length === 0) {
+        gridEl.innerHTML = `
+        <div class="store-empty-card" style="grid-column: 1 / -1;">
+            <div class="empty-icon">🛍️</div>
+            <h3>No Outfits Found</h3>
+            <p>${term ? `No products found matching "<strong>${esc(term)}</strong>"` : `No products found in the "<strong>${esc(cat)}</strong>" category.`}</p>
+            <div class="btns" style="justify-content:center;margin-top:14px">
+                <button type="button" class="btn primary" id="btnResetFilters">View All Outfits</button>
+            </div>
+        </div>`;
+
+        const btnResetFilters = document.getElementById("btnResetFilters");
+        if (btnResetFilters) {
+            btnResetFilters.onclick = () => {
+                cat = "All";
+                term = "";
+                const searchInput = $("#q");
+                if (searchInput) searchInput.value = "";
+                renderChips();
+                render();
+            };
+        }
+        return;
+    }
+
+    gridEl.innerHTML = filtered.map(p => {
+        const images = toArray(p.images);
+        const firstImg = images.length > 0 ? images[0] : "";
+        const hasPhoto = Boolean(firstImg);
+        const sizes = toArray(p.sizes);
+        const displayCategory = capitalize(p.category || "Outfit");
+
+        const discountPct = (p.original_price && Number(p.original_price) > Number(p.price))
+            ? Math.round((1 - p.price / p.original_price) * 100)
+            : 0;
+
+        const waDirect = wa(`Hi ${SHOP.name}, I want to check availability for "${p.name}" (${displayCategory}) priced at ${rupee(p.price)} at your Devichowk store.`);
+
+        return `
+        <div class="fashion-card ${p.in_stock === false ? "is-soldout" : ""}" data-id="${esc(p.id)}">
+            <div class="fashion-card-media" data-quick-id="${esc(p.id)}" title="Click to view details">
+                ${hasPhoto
+                    ? `<img src="${esc(firstImg)}" alt="${esc(p.name)}" class="fashion-img" loading="lazy">`
+                    : `<div class="fashion-placeholder-img"><span>👔</span></div>`
+                }
+
+                <div class="card-badge-container">
+                    ${p.is_new ? `<span class="fashion-badge badge-new">NEW</span>` : ""}
+                    ${discountPct > 0 ? `<span class="fashion-badge badge-discount">${discountPct}% OFF</span>` : ""}
+                </div>
+
+                ${p.in_stock === false ? `<div class="soldout-overlay"><span>SOLD OUT</span></div>` : ""}
+
+                <button type="button" class="fashion-quick-btn" data-id="${esc(p.id)}" aria-label="Quick View">
+                    <span>Quick View</span>
+                </button>
+            </div>
+
+            <div class="fashion-card-body">
+                <div class="fashion-card-cat">${esc(displayCategory)}</div>
+                <h3 class="fashion-card-title" title="${esc(p.name)}">${esc(p.name)}</h3>
+
+                ${sizes.length > 0 ? `
+                <div class="fashion-sizes-row">
+                    ${sizes.slice(0, 5).map(s => `<span class="mini-size-pill">${esc(s)}</span>`).join("")}
+                    ${sizes.length > 5 ? `<span class="mini-size-pill">+${sizes.length - 5}</span>` : ""}
+                </div>` : ""}
+
+                <div class="fashion-price-row">
+                    <span class="current-price">${rupee(p.price)}</span>
+                    ${p.original_price && Number(p.original_price) > Number(p.price) ? `<span class="original-price">${rupee(p.original_price)}</span>` : ""}
+                    ${discountPct > 0 ? `<span class="savings-tag">Save ${rupee(p.original_price - p.price)}</span>` : ""}
+                </div>
+
+                <div class="fashion-card-actions">
+                    <button class="btn-card-quick" type="button" data-id="${esc(p.id)}">
+                        <span>Details</span>
+                    </button>
+                    <a class="btn-card-wa" href="${waDirect}" target="_blank" rel="noopener" aria-label="Order on WhatsApp">
+                        <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
+                        <span>WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+        </div>`;
+    }).join("");
+}
+
+/* ===== QUICK VIEW MODAL DIALOG ===== */
+function openProduct(id) {
+    const p = products.find(x => String(x.id) === String(id));
+    if (!p) return;
+
+    const dlg = $("#dlg");
+    const dbody = $("#dbody");
+    if (!dlg || !dbody) return;
+
+    const images = toArray(p.images);
+    const firstImg = images.length > 0 ? images[0] : "";
+    const sizes = toArray(p.sizes);
+    const colors = toArray(p.colors);
+    const displayCategory = capitalize(p.category || "Outfit");
+
+    dbody.innerHTML = `
+    <div class="dlg-product-wrap">
+        <div class="dlg-media-column">
+            <div class="dlg-hero-frame">
+                ${firstImg
+                    ? `<img src="${esc(firstImg)}" id="dlgHeroImg" alt="${esc(p.name)}" class="dlg-hero-img">`
+                    : `<div class="dlg-hero-placeholder"><span>👔</span></div>`
+                }
+                ${p.is_new ? `<span class="fashion-badge badge-new" style="position:absolute;top:12px;left:12px">NEW</span>` : ""}
+            </div>
+
+            ${images.length > 1 ? `
+            <div class="dlg-thumbs-gallery">
+                ${images.map((img, idx) => `
+                    <button type="button" class="dlg-gallery-thumb ${idx === 0 ? "active" : ""}" data-img="${esc(img)}" aria-label="Photo ${idx + 1}">
+                        <img src="${esc(img)}" alt="Thumb ${idx + 1}">
+                    </button>
+                `).join("")}
+            </div>` : ""}
+        </div>
+
+        <div class="dlg-info-column">
+            <div class="dlg-kicker">${esc(displayCategory)} Collection</div>
+            <h2 class="dlg-title">${esc(p.name)}</h2>
+
+            <div class="dlg-price-block">
+                ${priceHTML(p)}
+            </div>
+
+            <div class="dlg-stock-status ${p.in_stock ? "in-stock" : "out-of-stock"}">
+                ${p.in_stock ? "● In stock at Devichowk showroom" : "○ Currently out of stock"}
+            </div>
+
+            ${sizes.length > 0 ? `
+            <div class="dlg-selector-group">
+                <label class="dlg-selector-label"><strong>Select Size:</strong> <span id="selSizeLabel">${esc(sizes[0])}</span></label>
+                <div class="dlg-options" data-group="size">
+                    ${sizes.map((s, i) => `<button type="button" class="dlg-choice-chip ${i === 0 ? "selected" : ""}" data-val="${esc(s)}">${esc(s)}</button>`).join("")}
+                </div>
+            </div>` : ""}
+
+            ${colors.length > 0 ? `
+            <div class="dlg-selector-group">
+                <label class="dlg-selector-label"><strong>Select Colour:</strong> <span id="selColorLabel">${esc(colors[0])}</span></label>
+                <div class="dlg-options" data-group="color">
+                    ${colors.map((c, i) => `<button type="button" class="dlg-choice-chip ${i === 0 ? "selected" : ""}" data-val="${esc(c)}">${esc(c)}</button>`).join("")}
+                </div>
+            </div>` : ""}
+
+            <div class="dlg-order-box">
+                <a class="btn dlg-wa-btn" id="dlgOrderBtn" target="_blank" rel="noopener" href="#">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
+                    <span>Order on WhatsApp</span>
+                </a>
+                <p class="dlg-pickup-note">🏪 Pay and collect in person · JDI Garments near Devichowk showroom.</p>
+            </div>
+        </div>
+    </div>`;
+
+    const getSelectedVal = groupName => {
+        const sel = dbody.querySelector(`[data-group="${groupName}"] .dlg-choice-chip.selected`);
+        return sel ? sel.dataset.val : "";
+    };
+
+    const updateOrderLink = () => {
+        const selSize = getSelectedVal("size");
+        const selColor = getSelectedVal("color");
+
+        let msgText = `Hi ${SHOP.name}, I want to order from the ${displayCategory} collection:\n`;
+        msgText += `• Item: ${p.name}\n`;
+        if (selSize) msgText += `• Size: ${selSize}\n`;
+        if (selColor) msgText += `• Colour: ${selColor}\n`;
+        msgText += `• Price: ${rupee(p.price)}\n`;
+        msgText += `I will pick it up at your store near Devichowk.`;
+
+        const orderBtn = $("#dlgOrderBtn");
+        if (orderBtn) {
+            orderBtn.href = wa(msgText);
+        }
+    };
+
+    dbody.onclick = e => {
+        // Thumbnail switcher
+        const thumbBtn = e.target.closest(".dlg-gallery-thumb");
+        if (thumbBtn) {
+            const heroImg = $("#dlgHeroImg");
+            if (heroImg) heroImg.src = thumbBtn.dataset.img;
+            dbody.querySelectorAll(".dlg-gallery-thumb").forEach(b => b.classList.toggle("active", b === thumbBtn));
+            return;
+        }
+
+        // Chip selection
+        const chip = e.target.closest(".dlg-choice-chip");
+        if (chip) {
+            const group = chip.closest("[data-group]");
+            if (group) {
+                group.querySelectorAll(".dlg-choice-chip").forEach(c => c.classList.toggle("selected", c === chip));
+                const groupName = group.dataset.group;
+                if (groupName === "size") {
+                    const lbl = $("#selSizeLabel");
+                    if (lbl) lbl.textContent = chip.dataset.val;
+                } else if (groupName === "color") {
+                    const lbl = $("#selColorLabel");
+                    if (lbl) lbl.textContent = chip.dataset.val;
+                }
+                updateOrderLink();
+            }
+        }
+    };
+
+    updateOrderLink();
+    document.body.style.overflow = "hidden";
+    dlg.showModal();
+}
+
+function closeDialog() {
+    const dlg = $("#dlg");
+    if (dlg) {
+        dlg.close();
+        document.body.style.overflow = "";
+    }
+}
+
+const closeBtn = $("#close");
+if (closeBtn) closeBtn.onclick = closeDialog;
+
+const dlg = $("#dlg");
+if (dlg) {
+    dlg.addEventListener("click", e => {
+        if (e.target === dlg) closeDialog();
+    });
+    dlg.addEventListener("cancel", () => {
+        document.body.style.overflow = "";
+    });
+}
+
+/* Category Chips Click Handling */
+const chipsEl = $("#chips");
+if (chipsEl) {
+    chipsEl.onclick = e => {
+        const btn = e.target.closest(".chip-type");
+        if (btn) {
+            cat = btn.dataset.c;
+            renderChips();
+            render();
+        }
+    };
+}
+
+/* Products Grid Click Handling */
+const gridEl = $("#grid");
+if (gridEl) {
+    gridEl.onclick = e => {
+        const quickBtn = e.target.closest("[data-quick-id], .btn-card-quick, .fashion-quick-btn");
+        if (quickBtn) {
+            const id = quickBtn.dataset.quickId || quickBtn.dataset.id;
+            if (id) openProduct(id);
+        }
+    };
+}
+
+/* ===== SEARCH BAR FUNCTIONALITY ===== */
+const searchInput = $("#q");
+const searchClearBtn = $("#clearSearch");
+
+if (searchInput) {
+    searchInput.oninput = e => {
+        term = e.target.value.trim().toLowerCase();
+        if (searchClearBtn) searchClearBtn.hidden = term.length === 0;
+        render();
+
+        if (term.length > 0) {
+            const shopSection = document.getElementById("shop");
+            if (shopSection) {
+                const rect = shopSection.getBoundingClientRect();
+                if (rect.top > 250 || rect.bottom < 0) {
+                    shopSection.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+    };
+
+    searchInput.onkeydown = e => {
+        if (e.key === "Enter") {
+            const shopSection = document.getElementById("shop");
+            if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+}
+
+if (searchClearBtn && searchInput) {
+    searchClearBtn.onclick = () => {
+        searchInput.value = "";
+        term = "";
+        searchClearBtn.hidden = true;
+        render();
+        searchInput.focus();
+    };
+}
+
+/* ===== SUPABASE CATALOG INTEGRATION ===== */
+async function loadSupabaseProducts() {
+    isLoading = true;
+    render();
+
+    if (typeof sb === "undefined" || !sb) {
+        console.warn("Supabase client is not available.");
+        isLoading = false;
+        render();
+        return;
+    }
+
+    try {
+        const { data, error } = await sb
+            .from("products")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.warn("Supabase fetch notice:", error.message);
+            isLoading = false;
+            render();
+            return;
+        }
+
+        products = data || [];
+        isLoading = false;
+        renderChips();
+        render();
+    } catch (err) {
+        console.warn("Supabase load exception:", err);
+        isLoading = false;
+        render();
+    }
+}
+
+// Initial Call
+loadSupabaseProducts();
+
+// Real-time synchronization
+try {
+    if (typeof sb !== "undefined" && sb && sb.channel) {
+        sb.channel("products_realtime")
+            .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+                loadSupabaseProducts();
+            })
+            .subscribe();
+    }
+} catch (e) {
+    // Ignore realtime setup errors
+}
+
+/* Explore / New Arrivals scroll trigger */
+const btnNewArrivals = document.getElementById("btnNewArrivals");
+if (btnNewArrivals) {
+    btnNewArrivals.addEventListener("click", e => {
+        const shopSection = document.getElementById("shop");
+        if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
+    });
+}
+
+/* Footer Category Links */
 document.addEventListener("click", e => {
     const typeLink = e.target.closest("[data-type-target]");
     if (typeLink) {
@@ -55,24 +540,19 @@ document.addEventListener("click", e => {
             renderChips();
             render();
             const shopSection = document.getElementById("shop");
-            if (shopSection) {
-                shopSection.scrollIntoView({ behavior: "smooth" });
-            }
+            if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
         }
     }
 
-    // Footer lookbook trigger
     const lbLink = e.target.closest("#footerLinkLookbook");
     if (lbLink) {
         e.preventDefault();
         const shopSection = document.getElementById("shop");
-        if (shopSection) {
-            shopSection.scrollIntoView({ behavior: "smooth" });
-        }
+        if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
     }
 });
 
-// Mobile Bottom Nav Active Highlighting on scroll
+/* Mobile Nav Active Highlighting on Scroll */
 window.addEventListener("scroll", () => {
     const scrollPos = window.scrollY + 200;
     const shopEl = document.getElementById("shop");
@@ -96,275 +576,6 @@ window.addEventListener("scroll", () => {
         mHome.classList.add("active");
     }
 }, { passive: true });
-
-function renderChips() {
-    const dynamicCats = [...new Set(products.map(p => p.category).filter(Boolean))];
-    const cats = dynamicCats.length > 0 ? ["All", ...dynamicCats] : ["All"];
-
-    const chipsEl = $("#chips");
-    if (!chipsEl) return;
-    chipsEl.innerHTML = cats.map(c => {
-        const isCurrent = c === cat;
-        let icon = "❖ ";
-        const lower = c.toLowerCase();
-        if (lower.includes("summer")) icon = "☀️ ";
-        else if (lower.includes("party")) icon = "✨ ";
-        else if (lower.includes("daily")) icon = "👕 ";
-        else if (lower.includes("shirt")) icon = "👔 ";
-        else if (lower.includes("pant") || lower.includes("jean") || lower.includes("trouser")) icon = "👖 ";
-        else if (c === "All") icon = "✦ ";
-        const count = c === "All" ? products.length : products.filter(p => p.category === c).length;
-        return `<button class="chip chip-type" aria-pressed="${isCurrent}" data-c="${esc(c)}">
-            <span class="chip-icon">${icon}</span>${esc(c)} <span class="chip-count">(${count})</span>
-        </button>`;
-    }).join("");
-}
-
-function render() {
-    const list = products.filter(p =>
-        (cat === "All" || p.category === cat) &&
-        (String(p.name || "") + " " + String(p.category || "") + " " + String(p.style || "") + " " + String(p.guide || "")).toLowerCase().includes(term));
-    
-    const emptyEl = $("#empty");
-    if (emptyEl) emptyEl.hidden = list.length > 0;
-
-    const gridEl = $("#grid");
-    if (!gridEl) return;
-
-    gridEl.innerHTML = list.length ? list.map(p => {
-        const typeSlug = (p.category || "").toLowerCase().replace(/\s+/g, '-');
-        const tagClass = p.category === "Summer Wear" ? "frame-tag-summer" : (p.category === "Party Wear" ? "frame-tag-party" : (p.category === "Daily Wear" ? "frame-tag-daily" : "frame-tag-custom"));
-        const thumbClass = p.category === "Summer Wear" ? "thumb-summer" : (p.category === "Party Wear" ? "thumb-party" : (p.category === "Daily Wear" ? "thumb-daily" : "thumb-custom"));
-        const waDirect = wa(`Hi ${SHOP.name}, I want to check availability for "${p.name}" (${p.category || "Outfit"}) priced at ${rupee(p.price)} at your Devichowk store.`);
-        
-        const images = Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []);
-        const firstImg = images.length > 0 ? images[0] : "";
-        const hasPhoto = Boolean(firstImg);
-
-        return `
-        <div class="look-card-frame type-${typeSlug}" data-id="${esc(p.id)}">
-            <div class="look-photo-frame ${hasPhoto ? "has-photo" : ""}" data-quick-id="${esc(p.id)}" title="Click to view details" ${hasPhoto ? `style="background-image:url('${esc(firstImg)}');"` : ""}>
-                ${p.is_new ? `<span class="card-badge badge-new">New</span>` : ""}
-                ${p.in_stock === false ? `<span class="card-badge badge-soldout">Sold Out</span>` : ""}
-                <div class="frame-placeholder">
-                    <div class="frame-tag ${tagClass}">${esc(p.category || "Outfit")}</div>
-                    ${p.guide || p.style ? `<div class="frame-guide">${esc(p.guide || p.style)}</div>` : ""}
-                </div>
-                ${(p.pins || []).map(pin => `
-                    <span class="look-pin" style="top: ${pin.top}; left: ${pin.left};" title="${esc(pin.label)}"></span>
-                `).join("")}
-            </div>
-            <div class="look-product-box">
-                <div class="look-product-top">
-                    <div class="look-thumb-frame ${hasPhoto ? "has-thumb-img" : thumbClass}" ${hasPhoto ? `style="background-image:url('${esc(firstImg)}');"` : ""}></div>
-                    <div class="look-details">
-                        <div class="look-item-title" title="${esc(p.name)}">${esc(p.name)}</div>
-                        <div class="look-item-price">
-                            <strong>${rupee(p.price)}</strong>
-                            ${p.original_price && Number(p.original_price) > Number(p.price) ? `<span class="was">${rupee(p.original_price)}</span>` : ""}
-                            ${p.original_price && Number(p.original_price) > Number(p.price) ? `<span class="off">${Math.round((1 - p.price / p.original_price) * 100)}% OFF</span>` : ""}
-                        </div>
-                    </div>
-                </div>
-                <div class="look-actions">
-                    <button class="btn-quick-view" type="button" data-id="${esc(p.id)}">QUICK VIEW</button>
-                    <a class="btn-view-arrow" href="${waDirect}" target="_blank" rel="noopener" aria-label="Order on WhatsApp">&#8599;</a>
-                </div>
-            </div>
-        </div>`;
-    }).join("") : `<div class="note" style="grid-column: 1 / -1; text-align: center; padding: 48px 20px;">
-        <p style="font-size:1.1rem;font-weight:700;margin-bottom:8px">No products found</p>
-        <p style="color:var(--muted);margin:0">Add your products in the <a href="Admin.html" style="text-decoration:underline;color:var(--tape);font-weight:700">Admin Dashboard</a> to display them here.</p>
-    </div>`;
-}
-
-function openProduct(id) {
-    const p = products.find(x => String(x.id) === String(id));
-    if (!p) return;
-    const typeSlug = (p.category || "").toLowerCase().replace(/\s+/g, '-');
-    const tagClass = p.category === "Summer Wear" ? "frame-tag-summer" : (p.category === "Party Wear" ? "frame-tag-party" : (p.category === "Daily Wear" ? "frame-tag-daily" : "frame-tag-custom"));
-    
-    const images = Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []);
-    const firstImg = images.length > 0 ? images[0] : "";
-    const hasHeroImg = Boolean(firstImg);
-
-    const sizes = Array.isArray(p.sizes) ? p.sizes : (typeof p.sizes === "string" ? p.sizes.split(",").map(s => s.trim()).filter(Boolean) : []);
-    const colors = Array.isArray(p.colors) ? p.colors : (typeof p.colors === "string" ? p.colors.split(",").map(c => c.trim()).filter(Boolean) : []);
-
-    $("#dbody").innerHTML = `
-    <div class="dlg-frame-hero type-${typeSlug} ${hasHeroImg ? "has-hero-img" : ""}" id="dlgHero">
-        ${hasHeroImg ? `<img src="${esc(firstImg)}" id="dlgHeroImg" alt="${esc(p.name)}" class="dlg-hero-img">` : ""}
-        <span class="frame-tag ${tagClass}" style="position:absolute;top:14px;left:14px;z-index:2">${esc(p.category || "Outfit")}</span>
-        ${p.guide || p.style ? `<div class="dlg-guide" style="position:absolute;bottom:14px;left:14px;z-index:2">${esc(p.guide || p.style)}</div>` : ""}
-        <div class="dlg-pins">
-            ${(p.pins || []).map(pin => `<span class="look-pin static" style="top:${pin.top};left:${pin.left}" title="${esc(pin.label)}"></span>`).join("")}
-        </div>
-    </div>
-    ${images.length > 1 ? `
-    <div class="dlg-thumbs">
-        ${images.map((img, idx) => `
-            <button type="button" class="dlg-thumb-btn ${idx === 0 ? "active" : ""}" style="background-image:url('${esc(img)}')" data-img="${esc(img)}" aria-label="Photo ${idx + 1}"></button>
-        `).join("")}
-    </div>` : ""}
-    <div>
-        <div class="dlg-badge-type">${esc(p.category || "JDI")} Collection</div>
-        <h3 style="margin:2px 0 6px">${esc(p.name)}</h3>
-        ${p.style ? `<p class="sub" style="margin:0 0 8px;font-size:0.86rem">${esc(p.style)}</p>` : ""}
-        <div class="price" style="font-weight:800;font-size:1.25rem">${priceHTML(p)}</div>
-        <div style="color:${p.in_stock ? "var(--ok)" : "var(--no)"};font-weight:600;font-size:0.86rem;margin-top:4px">
-            ${p.in_stock ? "● In stock at Devichowk store" : "○ Currently out of stock"}
-        </div>
-    </div>
-    ${sizes.length > 0 ? `
-    <div>
-        <strong>Select Size</strong>
-        <div class="opts" data-g="size">
-            ${sizes.map((s, i) => `<button class="chip" aria-pressed="${i === 0}">${esc(s)}</button>`).join("")}
-        </div>
-    </div>` : ""}
-    ${colors.length > 0 ? `
-    <div>
-        <strong>Select Colour</strong>
-        <div class="opts" data-g="color">
-            ${colors.map((c, i) => `<button class="chip" aria-pressed="${i === 0}">${esc(c)}</button>`).join("")}
-        </div>
-    </div>` : ""}
-    <a class="btn wa" id="order" target="_blank" rel="noopener" href="#" ${p.in_stock ? "" : 'aria-disabled="true" style="opacity:.5;pointer-events:none"'}>Order on WhatsApp</a>
-    <p class="sub" style="margin:0;font-size:0.82rem;text-align:center">Pay and pick up in store · JDI Garments near Devichowk.</p>`;
-    
-    const pick = g => (document.querySelector(`[data-g="${g}"] [aria-pressed="true"]`) || {}).textContent || "";
-    const upd = () => {
-        const selSize = pick("size");
-        const selColor = pick("color");
-        let orderMsg = `Hi ${SHOP.name}, I want to order from the ${p.category || "store"} collection:\n• Item: ${p.name}`;
-        if (selSize) orderMsg += `\n• Size: ${selSize}`;
-        if (selColor) orderMsg += `\n• Colour: ${selColor}`;
-        orderMsg += `\n• Price: ${rupee(p.price)}\nI will pick it up from the store near Devichowk.`;
-        $("#order").href = wa(orderMsg);
-    };
-    
-    $("#dbody").onclick = e => {
-        const thumb = e.target.closest(".dlg-thumb-btn");
-        if (thumb) {
-            const heroImg = document.getElementById("dlgHeroImg");
-            if (heroImg) heroImg.src = thumb.dataset.img;
-            const hero = document.getElementById("dlgHero");
-            if (hero && !heroImg) hero.style.backgroundImage = `url('${thumb.dataset.img}')`;
-            document.querySelectorAll(".dlg-thumb-btn").forEach(b => b.classList.toggle("active", b === thumb));
-            return;
-        }
-        const b = e.target.closest(".chip"); if (!b) return;
-        b.parentElement.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === b));
-        upd();
-    };
-    upd();
-    $("#dlg").showModal();
-}
-
-$("#chips").onclick = e => {
-    const b = e.target.closest(".chip");
-    if (b) {
-        cat = b.dataset.c;
-        renderChips();
-        render();
-    }
-};
-
-$("#grid").onclick = e => {
-    const qv = e.target.closest(".btn-quick-view");
-    if (qv) {
-        openProduct(qv.dataset.id);
-        return;
-    }
-    const photoFrame = e.target.closest(".look-photo-frame[data-quick-id]");
-    if (photoFrame) {
-        openProduct(photoFrame.dataset.quickId);
-    }
-};
-
-/* Search from Navigation Bar */
-const searchInput = $("#q");
-if (searchInput) {
-    searchInput.oninput = e => {
-        term = e.target.value.trim().toLowerCase();
-        render();
-        if (term.length > 0) {
-            const shopSection = document.getElementById("shop");
-            if (shopSection) {
-                const rect = shopSection.getBoundingClientRect();
-                if (rect.top > 250 || rect.bottom < 0) {
-                    shopSection.scrollIntoView({ behavior: "smooth" });
-                }
-            }
-        }
-    };
-    searchInput.onkeydown = e => {
-        if (e.key === "Enter") {
-            const shopSection = document.getElementById("shop");
-            if (shopSection) shopSection.scrollIntoView({ behavior: "smooth" });
-        }
-    };
-}
-
-$("#close").onclick = () => $("#dlg").close();
-$("#dlg").addEventListener("click", e => { if (e.target === $("#dlg")) $("#dlg").close(); });
-
-async function loadSupabaseProducts() {
-    if (typeof sb === "undefined" || !sb) {
-        return;
-    }
-    try {
-        const { data, error } = await sb
-            .from("products")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            console.warn("Supabase products fetch:", error.message);
-            return;
-        }
-
-        if (data && data.length > 0) {
-            products = data;
-            renderChips();
-            render();
-        } else {
-            products = [];
-            renderChips();
-            render();
-        }
-    } catch (err) {
-        console.warn("Supabase fetch exception:", err);
-    }
-}
-
-renderChips();
-render();
-loadSupabaseProducts();
-
-// Real-time synchronization when admin adds, updates, or deletes products
-try {
-    if (typeof sb !== "undefined" && sb) {
-        sb.channel("products_realtime")
-            .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
-                loadSupabaseProducts();
-            })
-            .subscribe();
-    }
-} catch (e) {
-    // Ignore realtime setup errors if not supported
-}
-
-/* Explore / New Arrivals scroll trigger */
-const btnNewArrivals = document.getElementById("btnNewArrivals");
-if (btnNewArrivals) {
-    btnNewArrivals.addEventListener("click", e => {
-        const shopSection = document.getElementById("shop");
-        if (shopSection) {
-            shopSection.scrollIntoView({ behavior: "smooth" });
-        }
-    });
-}
 
 /* ===== PROMOTIONAL BANNER SLIDER ===== */
 (function initPromoBanner() {
@@ -400,45 +611,15 @@ if (btnNewArrivals) {
         }, 250);
     }
 
-    function nextOffer() {
-        goTo((current + 1) % items.length, 1);
-    }
+    function nextOffer() { goTo((current + 1) % items.length, 1); }
+    function prevOffer() { goTo((current - 1 + items.length) % items.length, -1); }
 
-    function prevOffer() {
-        goTo((current - 1 + items.length) % items.length, -1);
-    }
+    function startTimer() { stopTimer(); timer = setInterval(nextOffer, 3500); }
+    function stopTimer() { if (timer) clearInterval(timer); }
 
-    function startTimer() {
-        stopTimer();
-        timer = setInterval(nextOffer, 3500);
-    }
-
-    function stopTimer() {
-        if (timer) clearInterval(timer);
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            nextOffer();
-            startTimer();
-        });
-    }
-
-    if (prevBtn) {
-        prevBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            prevOffer();
-            startTimer();
-        });
-    }
-
-    if (slider) {
-        slider.addEventListener("click", () => {
-            nextOffer();
-            startTimer();
-        });
-    }
+    if (nextBtn) nextBtn.addEventListener("click", e => { e.stopPropagation(); nextOffer(); startTimer(); });
+    if (prevBtn) prevBtn.addEventListener("click", e => { e.stopPropagation(); prevOffer(); startTimer(); });
+    if (slider) slider.addEventListener("click", () => { nextOffer(); startTimer(); });
 
     if (banner) {
         banner.addEventListener("mouseenter", stopTimer);
@@ -450,7 +631,7 @@ if (btnNewArrivals) {
     startTimer();
 })();
 
-/* ===== MOTION BANNER (RANDOM MOTION & ROTATION) ===== */
+/* ===== MOTION BANNER ===== */
 (function initMotionBanner() {
     const banner = document.getElementById("motionBanner");
     if (!banner) return;
@@ -465,25 +646,17 @@ if (btnNewArrivals) {
     let timer = null;
     let isTransitioning = false;
 
-    // Apply smooth randomized motion to active banner image
     function applyRandomMotion(slide) {
         const img = slide.querySelector(".banner-img");
         if (!img) return;
 
-        // Reset any inline CSS keyframe animation so our random transform takes over
         img.style.animation = "none";
-
-        // Random subtle scale between 1.04 and 1.085
         const scale = (1.04 + Math.random() * 0.045).toFixed(3);
-        // Random drift X: -2.5% to +2.5%
         const driftX = ((Math.random() - 0.5) * 5).toFixed(2);
-        // Random drift Y: -2% to +2%
         const driftY = ((Math.random() - 0.5) * 4).toFixed(2);
-        // Random motion speed: 6 to 9 seconds
         const duration = (6 + Math.random() * 3).toFixed(1);
 
         img.style.transition = `transform ${duration}s cubic-bezier(0.25, 1, 0.5, 1)`;
-        // Trigger reflow then apply
         requestAnimationFrame(() => {
             img.style.transform = `scale(${scale}) translate(${driftX}%, ${driftY}%)`;
         });
@@ -506,66 +679,28 @@ if (btnNewArrivals) {
         nextSlide.classList.add("active");
         applyRandomMotion(nextSlide);
 
-        dots.forEach((dot, i) => {
-            dot.classList.toggle("active", i === index);
-        });
-
+        dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
         currentIndex = index;
-        setTimeout(() => {
-            isTransitioning = false;
-        }, 800);
+
+        setTimeout(() => { isTransitioning = false; }, 800);
     }
 
-    function nextBanner() {
-        const nextIdx = (currentIndex + 1) % slides.length;
-        showSlide(nextIdx);
-    }
+    function nextBanner() { showSlide((currentIndex + 1) % slides.length); }
+    function prevBanner() { showSlide((currentIndex - 1 + slides.length) % slides.length); }
 
-    function prevBanner() {
-        const prevIdx = (currentIndex - 1 + slides.length) % slides.length;
-        showSlide(prevIdx);
-    }
+    function startTimer() { stopTimer(); timer = setInterval(nextBanner, 4800); }
+    function stopTimer() { if (timer) clearInterval(timer); }
 
-    function startTimer() {
-        stopTimer();
-        timer = setInterval(nextBanner, 4800);
-    }
+    if (nextBtn) nextBtn.addEventListener("click", () => { nextBanner(); startTimer(); });
+    if (prevBtn) prevBtn.addEventListener("click", () => { prevBanner(); startTimer(); });
 
-    function stopTimer() {
-        if (timer) clearInterval(timer);
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            nextBanner();
-            startTimer();
-        });
-    }
-
-    if (prevBtn) {
-        prevBtn.addEventListener("click", () => {
-            prevBanner();
-            startTimer();
-        });
-    }
-
-    dots.forEach((dot, i) => {
-        dot.addEventListener("click", () => {
-            showSlide(i);
-            startTimer();
-        });
-    });
+    dots.forEach((dot, i) => dot.addEventListener("click", () => { showSlide(i); startTimer(); }));
 
     // Touch swipe support
     let touchStartX = 0;
-    banner.addEventListener("touchstart", e => {
-        touchStartX = e.touches[0].clientX;
-        stopTimer();
-    }, { passive: true });
-
+    banner.addEventListener("touchstart", e => { touchStartX = e.touches[0].clientX; stopTimer(); }, { passive: true });
     banner.addEventListener("touchend", e => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diffX = touchEndX - touchStartX;
+        const diffX = e.changedTouches[0].clientX - touchStartX;
         if (Math.abs(diffX) > 40) {
             if (diffX < 0) nextBanner();
             else prevBanner();
@@ -576,7 +711,7 @@ if (btnNewArrivals) {
     banner.addEventListener("mouseenter", stopTimer);
     banner.addEventListener("mouseleave", startTimer);
 
-    // Subtle parallax motion on mouse movement (desktop)
+    // Subtle parallax motion
     banner.addEventListener("mousemove", e => {
         const activeSlide = slides[currentIndex];
         const img = activeSlide ? activeSlide.querySelector(".banner-img") : null;
@@ -588,12 +723,11 @@ if (btnNewArrivals) {
         img.style.transform = `scale(1.05) translate(${(normX * -2.5).toFixed(2)}%, ${(normY * -2.5).toFixed(2)}%)`;
     });
 
-    // Initial random motion on the first banner
     applyRandomMotion(slides[0]);
     startTimer();
 })();
 
-/* ===== JDI STORE SHOWCASE & ADMIN PHOTO MANAGEMENT ===== */
+/* ===== STORE SHOWCASE PHOTOS (LOCALSTORAGE / DEFAULTS) ===== */
 (function initStoreShowcasePhotos() {
     const DEFAULT_PHOTOS = {
         main: "store_main.jpg",
@@ -623,43 +757,23 @@ if (btnNewArrivals) {
         if (imgDown3) imgDown3.src = photos.down3 || DEFAULT_PHOTOS.down3;
     }
 
-    // Apply on page load
-    const currentPhotos = getSavedPhotos();
-    applyPhotos(currentPhotos);
+    applyPhotos(getSavedPhotos());
 
-    // Admin Dialog Handling
+    // Admin Dialog Handling (if accessed via ?admin=1)
     const btnOpenAdmin = document.getElementById("btnOpenAdminStore");
     const adminDlg = document.getElementById("adminStoreDlg");
     const btnCloseAdmin = document.getElementById("closeAdminStoreDlg");
     const adminForm = document.getElementById("adminStoreForm");
     const btnReset = document.getElementById("btnResetStoreImgs");
 
-    const inputMain = document.getElementById("inputStoreMainUrl");
-    const inputDown1 = document.getElementById("inputStoreDown1Url");
-    const inputDown2 = document.getElementById("inputStoreDown2Url");
-    const inputDown3 = document.getElementById("inputStoreDown3Url");
-
-    const fileMain = document.getElementById("fileStoreMain");
-    const fileDown1 = document.getElementById("fileStoreDown1");
-    const fileDown2 = document.getElementById("fileStoreDown2");
-    const fileDown3 = document.getElementById("fileStoreDown3");
-
-    function readFileInput(fileInput) {
-        return new Promise(resolve => {
-            if (fileInput && fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = () => resolve(null);
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                resolve(null);
-            }
-        });
-    }
-
     if (btnOpenAdmin && adminDlg) {
         btnOpenAdmin.addEventListener("click", () => {
             const p = getSavedPhotos();
+            const inputMain = document.getElementById("inputStoreMainUrl");
+            const inputDown1 = document.getElementById("inputStoreDown1Url");
+            const inputDown2 = document.getElementById("inputStoreDown2Url");
+            const inputDown3 = document.getElementById("inputStoreDown3Url");
+
             if (inputMain) inputMain.value = p.main && !p.main.startsWith("data:") ? p.main : "";
             if (inputDown1) inputDown1.value = p.down1 && !p.down1.startsWith("data:") ? p.down1 : "";
             if (inputDown2) inputDown2.value = p.down2 && !p.down2.startsWith("data:") ? p.down2 : "";
@@ -678,28 +792,45 @@ if (btnNewArrivals) {
         });
     }
 
+    function readFileInput(fileInput) {
+        return new Promise(resolve => {
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                resolve(null);
+            }
+        });
+    }
+
     if (adminForm) {
         adminForm.addEventListener("submit", async e => {
             e.preventDefault();
             const existing = getSavedPhotos();
 
-            // Read file uploads if any, else use URL inputs, else keep existing
-            const fileMainData = await readFileInput(fileMain);
-            const fileDown1Data = await readFileInput(fileDown1);
-            const fileDown2Data = await readFileInput(fileDown2);
-            const fileDown3Data = await readFileInput(fileDown3);
+            const fileMainData = await readFileInput(document.getElementById("fileStoreMain"));
+            const fileDown1Data = await readFileInput(document.getElementById("fileStoreDown1"));
+            const fileDown2Data = await readFileInput(document.getElementById("fileStoreDown2"));
+            const fileDown3Data = await readFileInput(document.getElementById("fileStoreDown3"));
+
+            const inputMain = document.getElementById("inputStoreMainUrl");
+            const inputDown1 = document.getElementById("inputStoreDown1Url");
+            const inputDown2 = document.getElementById("inputStoreDown2Url");
+            const inputDown3 = document.getElementById("inputStoreDown3Url");
 
             const updated = {
-                main: fileMainData || (inputMain.value.trim() || existing.main || DEFAULT_PHOTOS.main),
-                down1: fileDown1Data || (inputDown1.value.trim() || existing.down1 || DEFAULT_PHOTOS.down1),
-                down2: fileDown2Data || (inputDown2.value.trim() || existing.down2 || DEFAULT_PHOTOS.down2),
-                down3: fileDown3Data || (inputDown3.value.trim() || existing.down3 || DEFAULT_PHOTOS.down3)
+                main: fileMainData || ((inputMain && inputMain.value.trim()) || existing.main || DEFAULT_PHOTOS.main),
+                down1: fileDown1Data || ((inputDown1 && inputDown1.value.trim()) || existing.down1 || DEFAULT_PHOTOS.down1),
+                down2: fileDown2Data || ((inputDown2 && inputDown2.value.trim()) || existing.down2 || DEFAULT_PHOTOS.down2),
+                down3: fileDown3Data || ((inputDown3 && inputDown3.value.trim()) || existing.down3 || DEFAULT_PHOTOS.down3)
             };
 
             try {
                 localStorage.setItem("jdi_store_showcase_photos", JSON.stringify(updated));
             } catch (err) {
-                console.warn("Storage quota exceeded, changes applied in memory.");
+                console.warn("Storage quota notice.");
             }
 
             applyPhotos(updated);
@@ -711,10 +842,6 @@ if (btnNewArrivals) {
         btnReset.addEventListener("click", () => {
             localStorage.removeItem("jdi_store_showcase_photos");
             applyPhotos(DEFAULT_PHOTOS);
-            if (inputMain) inputMain.value = DEFAULT_PHOTOS.main;
-            if (inputDown1) inputDown1.value = DEFAULT_PHOTOS.down1;
-            if (inputDown2) inputDown2.value = DEFAULT_PHOTOS.down2;
-            if (inputDown3) inputDown3.value = DEFAULT_PHOTOS.down3;
             if (adminDlg) adminDlg.close();
         });
     }

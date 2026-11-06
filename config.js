@@ -3,4 +3,6 @@
    NEVER put a key starting with sb_secret_ or service_role in any file. */
 const SUPABASE_URL = "https://yafzbrkudquitxqwprpb.supabase.co";
 const SUPABASE_KEY = "sb_publishable_u6iDr_YV0zNB3NrVKDzm2g_vXqtiBbp";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = (typeof window !== "undefined" && window.supabase)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
