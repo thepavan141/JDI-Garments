@@ -428,6 +428,30 @@ if (gridEl) {
             if (id) openProduct(id);
         }
     };
+
+    // Translate mouse wheel/trackpad vertical scroll into horizontal scroll on mobile
+    gridEl.addEventListener("wheel", e => {
+        if (window.innerWidth <= 768 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+            e.preventDefault();
+            gridEl.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
+}
+
+/* Mobile Swipe Buttons (‹ and ›) */
+const swipePrev = document.getElementById("swipePrev");
+const swipeNext = document.getElementById("swipeNext");
+
+if (swipePrev && gridEl) {
+    swipePrev.onclick = () => {
+        gridEl.scrollBy({ left: -270, behavior: "smooth" });
+    };
+}
+
+if (swipeNext && gridEl) {
+    swipeNext.onclick = () => {
+        gridEl.scrollBy({ left: 270, behavior: "smooth" });
+    };
 }
 
 /* ===== SEARCH BAR FUNCTIONALITY ===== */

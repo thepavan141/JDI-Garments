@@ -584,6 +584,10 @@ nav[aria-label="Main Navigation"] a:hover {
 }
 
 /* ===== MODERN FASHION PRODUCT GRID ===== */
+.mobile-swipe-bar {
+    display: none;
+}
+
 .products-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1793,26 +1797,115 @@ dialog::backdrop {
         scroll-padding-top: calc(140px + env(safe-area-inset-top, 0px));
     }
 
-    /* 2-Column Grid on Mobile Phones */
+    /* Horizontal Swipeable Product Reel on Mobile */
+    .mobile-swipe-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding: 0 4px;
+    }
+
+    .swipe-text {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--tape);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .swipe-arrows {
+        display: flex;
+        gap: 6px;
+    }
+
+    .swipe-btn {
+        background: #fff;
+        border: 1.5px solid var(--line);
+        color: var(--ink);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        font-size: 1.15rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .swipe-btn:active {
+        background: var(--tape);
+        color: #fff;
+        border-color: var(--tape);
+        transform: scale(0.92);
+    }
+
     .products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scroll-padding-left: 20px;
+        gap: 14px;
+        padding-left: 20px;
+        padding-right: 20px;
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-bottom: 16px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--tape) #f1f5f9;
+    }
+
+    .products-grid::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .products-grid::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 999px;
+        margin: 0 20px;
+    }
+
+    .products-grid::-webkit-scrollbar-thumb {
+        background: var(--tape);
+        border-radius: 999px;
+    }
+
+    .fashion-card,
+    .product-skeleton-card {
+        flex: 0 0 calc(72vw - 16px);
+        max-width: 270px;
+        min-width: 220px;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
+
+    .store-empty-card {
+        min-width: 100%;
+        width: 100%;
     }
 
     .fashion-card-body {
-        padding: 10px;
+        padding: 12px;
     }
 
     .fashion-card-title {
-        font-size: 0.88rem;
+        font-size: 0.92rem;
     }
 
     .current-price {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 
     .fashion-card-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .product-types-bar {
@@ -1897,8 +1990,10 @@ dialog::backdrop {
 }
 
 @media (max-width: 340px) {
-    .products-grid {
-        grid-template-columns: 1fr;
+    .fashion-card,
+    .product-skeleton-card {
+        flex: 0 0 calc(84vw - 16px);
+        min-width: 200px;
     }
 }
 
