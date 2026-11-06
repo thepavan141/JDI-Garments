@@ -38,12 +38,13 @@
         <!-- Sticky Header Bar -->
         <header>
             <div class="wrap header-row">
-                <a class="brand" href="#top" title="JDI Garments">
-                    <img src="photo.jpg" alt="JDI Garments" class="logo">
-                </a>
+                <!-- Top Line: Logo next to Search Bar, plus Cart -->
+                <div class="header-top-line">
+                    <a class="brand" href="#top" title="JDI Garments">
+                        <img src="photo.jpg" alt="JDI Garments" class="logo">
+                    </a>
 
-                <div class="header-nav-group">
-                    <!-- Search Bar -->
+                    <!-- Search Bar (fits next to the logo) -->
                     <div class="nav-search">
                         <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -54,13 +55,7 @@
                         <button type="button" class="search-clear-btn" id="clearSearch" aria-label="Clear search" hidden>×</button>
                     </div>
 
-                    <!-- Navigation Links -->
-                    <nav aria-label="Main Navigation">
-                        <a href="#shop">Outfits</a>
-                        <a href="#visit">Store Visit</a>
-                        <a href="#policy">Exchange Policy</a>
-                    </nav>
-
+                    <!-- Cart Button -->
                     <button type="button" class="header-icon-btn header-cart-btn" id="openCartBtn" aria-label="View Shopping Bag" title="Shopping Bag">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -70,6 +65,13 @@
                         <span class="cart-badge" id="cartCount">0</span>
                     </button>
                 </div>
+
+                <!-- Down of Search Bar: Navigation Bar -->
+                <nav class="header-sub-nav" aria-label="Main Navigation">
+                    <a href="#shop">Outfits</a>
+                    <a href="#visit">Store Visit</a>
+                    <a href="#policy">Exchange Policy</a>
+                </nav>
             </div>
         </header>
     </div>

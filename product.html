@@ -38,12 +38,13 @@
         <!-- Sticky Header Bar -->
         <header>
             <div class="wrap header-row">
-                <a class="brand" href="index.html" title="JDI Garments – The Fashion Destination">
-                    <img src="photo.jpg" alt="JDI Garments" class="logo">
-                </a>
+                <!-- Top Line: Logo next to Search Bar, plus Cart -->
+                <div class="header-top-line">
+                    <a class="brand" href="index.html" title="JDI Garments – The Fashion Destination">
+                        <img src="photo.jpg" alt="JDI Garments" class="logo">
+                    </a>
 
-                <div class="header-nav-group">
-                    <!-- Search Link -->
+                    <!-- Search Bar (fits next to the logo) -->
                     <div class="nav-search pdp-search">
                         <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -53,24 +54,23 @@
                         <input id="q" type="search" placeholder="Search catalog…" aria-label="Search products" onkeydown="if(event.key==='Enter') window.location.href='index.html?q='+encodeURIComponent(this.value)">
                     </div>
 
-                    <!-- Navigation Links & Cart Button -->
-                    <nav class="pdp-header-nav" aria-label="Main Navigation">
-                        <a href="index.html#shop">Outfits</a>
-                        <a href="index.html#visit">Store Visit</a>
-                        <a href="index.html#policy">Exchange Policy</a>
-                    </nav>
-
-                    <div class="pdp-header-actions">
-                        <button type="button" class="header-icon-btn header-cart-btn" id="openCartBtn" aria-label="View Shopping Bag" title="Shopping Bag">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                            <span class="cart-badge" id="cartCount">0</span>
-                        </button>
-                    </div>
+                    <!-- Cart Button -->
+                    <button type="button" class="header-icon-btn header-cart-btn" id="openCartBtn" aria-label="View Shopping Bag" title="Shopping Bag">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </button>
                 </div>
+
+                <!-- Down of Search Bar: Navigation Bar -->
+                <nav class="header-sub-nav" aria-label="Main Navigation">
+                    <a href="index.html#shop">Outfits</a>
+                    <a href="index.html#visit">Store Visit</a>
+                    <a href="index.html#policy">Exchange Policy</a>
+                </nav>
             </div>
         </header>
     </div>
@@ -459,3 +459,4 @@
 </body>
 
 </html>
+

@@ -173,16 +173,16 @@ header .wrap.header-row {
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
-/* On desktop, keep nav and search as direct flex items */
-.header-nav-group {
+.header-top-line {
     display: contents;
 }
 
 .brand {
+    order: 1;
     font-weight: 800;
     font-size: 1.35rem;
     letter-spacing: 0.02em;
@@ -193,9 +193,9 @@ header .wrap.header-row {
 }
 
 .brand .logo {
-    height: 44px;
-    max-height: 48px;
-    max-width: 220px;
+    height: 42px;
+    max-height: 46px;
+    max-width: 190px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -203,6 +203,7 @@ header .wrap.header-row {
 }
 
 .nav-search {
+    order: 2;
     position: relative;
     flex: 1;
     max-width: 440px;
@@ -266,7 +267,9 @@ header .wrap.header-row {
     color: #111;
 }
 
+.header-sub-nav,
 nav[aria-label="Main Navigation"] {
+    order: 3;
     display: flex;
     gap: 20px;
     font-size: 0.95rem;
@@ -274,15 +277,22 @@ nav[aria-label="Main Navigation"] {
     align-items: center;
 }
 
+.header-sub-nav a,
 nav[aria-label="Main Navigation"] a {
     color: var(--ink-secondary);
     transition: color 0.15s;
     position: relative;
     padding: 4px 0;
+    white-space: nowrap;
 }
 
+.header-sub-nav a:hover,
 nav[aria-label="Main Navigation"] a:hover {
     color: var(--tape);
+}
+
+.header-cart-btn {
+    order: 4;
 }
 
 /* ===== HERO MOTION BANNER ===== */
@@ -1900,61 +1910,64 @@ dialog::backdrop {
         font-size: 1.25rem;
     }
 
-    /* Mobile Header Layout: Logo clearly visible, Search + Nav in a single horizontal row */
+    /* Mobile Header Layout:
+       Row 1: Search bar fits directly next to the Logo!
+       Row 2: Down of search bar is the Navigation Bar! */
     header .wrap.header-row {
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
+        gap: 6px;
         padding-top: 8px;
         padding-bottom: 8px;
     }
 
-    .brand {
+    /* Top Line: Logo + Search Bar (fits next to logo) + Cart */
+    .header-top-line {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-        height: 34px;
-    }
-
-    .brand .logo {
-        height: 32px;
-        max-height: 34px;
-        max-width: 150px;
-        width: auto;
-    }
-
-    .header-nav-group {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         gap: 8px;
         width: 100%;
         min-width: 0;
     }
 
-    .nav-search {
-        position: relative;
-        flex: 0 1 125px;
-        min-width: 100px;
-        max-width: 145px;
-        margin: 0;
-        transition: flex 0.25s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    .brand {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
     }
 
-    .nav-search:focus-within {
-        flex: 1 1 180px;
-        max-width: 210px;
+    .brand .logo {
+        height: 34px;
+        max-height: 36px;
+        max-width: 120px;
+        width: auto;
+    }
+
+    .nav-search {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+        margin: 0;
     }
 
     .nav-search input {
-        height: 32px;
-        font-size: 0.8rem;
-        padding: 4px 22px 4px 28px;
+        width: 100%;
+        height: 36px;
+        font-size: 0.84rem;
+        padding: 4px 26px 4px 32px;
+        border-radius: 999px;
+        background: #f9fafb;
+        border: 1.5px solid var(--line);
+    }
+
+    .nav-search input:focus {
+        background: #ffffff;
+        border-color: var(--tape);
     }
 
     .nav-search-icon {
-        left: 8px;
+        left: 10px;
         width: 14px;
         height: 14px;
     }
@@ -1966,42 +1979,49 @@ dialog::backdrop {
         font-size: 12px;
     }
 
-    nav[aria-label="Main Navigation"] {
+    .header-cart-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Down of Search Bar: Navigation Bar */
+    .header-sub-nav {
         display: flex;
         align-items: center;
+        justify-content: space-around;
         gap: 8px;
-        font-size: 0.82rem;
+        width: 100%;
+        padding: 5px 0 2px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        font-size: 0.86rem;
         font-weight: 700;
-        white-space: nowrap;
         overflow-x: auto;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
-        flex: 1 1 auto;
-        justify-content: flex-end;
-        padding: 2px 0;
-        margin: 0;
+        white-space: nowrap;
     }
 
-    nav[aria-label="Main Navigation"]::-webkit-scrollbar {
+    .header-sub-nav::-webkit-scrollbar {
         display: none;
     }
 
-    nav[aria-label="Main Navigation"] a {
+    .header-sub-nav a {
         color: var(--ink-secondary);
-        padding: 4px 6px;
-        border-radius: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
         transition: color 0.15s, background-color 0.15s;
         flex-shrink: 0;
     }
 
-    nav[aria-label="Main Navigation"] a:hover,
-    nav[aria-label="Main Navigation"] a:active {
+    .header-sub-nav a:hover,
+    .header-sub-nav a:active {
         color: var(--tape);
-        background: rgba(200, 35, 85, 0.06);
+        background: #fff5f7;
     }
 
     html {
-        scroll-padding-top: calc(125px + env(safe-area-inset-top, 0px));
+        scroll-padding-top: calc(130px + env(safe-area-inset-top, 0px));
     }
 
     /* Horizontal Swipeable Product Reel on Mobile */
@@ -2167,24 +2187,6 @@ dialog::backdrop {
         flex-direction: column;
         text-align: center;
         gap: 8px;
-    }
-}
-
-@media (min-width: 640px) and (max-width: 768px) {
-    header .wrap.header-row {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 14px;
-    }
-    .header-nav-group {
-        flex: 1;
-        justify-content: flex-end;
-        gap: 12px;
-    }
-    .nav-search {
-        flex: 0 1 180px;
-        max-width: 220px;
     }
 }
 
