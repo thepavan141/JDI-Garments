@@ -5,7 +5,7 @@ const BUCKET = "product-images";
 let items = [];
 let editing = null;
 let keepImages = []; // Array of URLs or data URLs
-let pendingUploadFiles = []; // Array of File objects selected for upload
+let pendingUploadFiles = []; // Array of { file: File, preview: string, originalSize: number, compressedSize: number, reductionPct: number }
 
 const toArray = val => {
     if (Array.isArray(val)) return val;
@@ -23,11 +23,146 @@ const toArray = val => {
 };
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 const pathFromUrl = u => {
     if (!u || typeof u !== "string") return "";
     const parts = u.split("/" + BUCKET + "/");
     return parts[1] ? decodeURIComponent(parts[1]) : "";
 };
+
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+}
+
+/* ===== CLIENT-SIDE IMAGE COMPRESSOR ENGINE ===== */
+function compressImage(file, options = {}) {
+    return new Promise((resolve) => {
+        if (!file || !file.type || !file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
+            resolve({
+                blob: file,
+                originalSize: file ? file.size : 0,
+                compressedSize: file ? file.size : 0,
+                dataUrl: file ? URL.createObjectURL(file) : "",
+                wasCompressed: false,
+                reductionPct: 0
+            });
+            return;
+        }
+
+        const maxWidth = options.maxWidth || 1400;
+        const maxHeight = options.maxHeight || 1400;
+        const quality = options.quality !== undefined ? options.quality : 0.82;
+        const outputType = options.outputType || "image/jpeg";
+
+        const reader = new FileReader();
+        reader.onerror = () => {
+            resolve({
+                blob: file,
+                originalSize: file.size,
+                compressedSize: file.size,
+                dataUrl: URL.createObjectURL(file),
+                wasCompressed: false,
+                reductionPct: 0
+            });
+        };
+
+        reader.onload = e => {
+            const img = new Image();
+            img.onerror = () => {
+                resolve({
+                    blob: file,
+                    originalSize: file.size,
+                    compressedSize: file.size,
+                    dataUrl: URL.createObjectURL(file),
+                    wasCompressed: false,
+                    reductionPct: 0
+                });
+            };
+
+            img.onload = () => {
+                let { width, height } = img;
+
+                // Scale down while maintaining aspect ratio
+                if (width > maxWidth || height > maxHeight) {
+                    if (width / height > maxWidth / maxHeight) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    } else {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext("2d");
+
+                // Fill white background for transparent PNG converted to JPEG
+                if (outputType === "image/jpeg") {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, width, height);
+                }
+
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = "high";
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        resolve({
+                            blob: file,
+                            originalSize: file.size,
+                            compressedSize: file.size,
+                            dataUrl: URL.createObjectURL(file),
+                            wasCompressed: false,
+                            reductionPct: 0
+                        });
+                        return;
+                    }
+
+                    // Only use compressed if smaller than original
+                    const useCompressed = blob.size < file.size;
+                    const finalBlob = useCompressed ? blob : file;
+                    const reductionPct = Math.max(0, Math.round((1 - finalBlob.size / file.size) * 100));
+
+                    resolve({
+                        blob: finalBlob,
+                        originalSize: file.size,
+                        compressedSize: finalBlob.size,
+                        width,
+                        height,
+                        dataUrl: URL.createObjectURL(finalBlob),
+                        wasCompressed: useCompressed,
+                        reductionPct
+                    });
+                }, outputType, quality);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function getCompressorOptions() {
+    const enabled = $("#compressorEnabled") ? $("#compressorEnabled").checked : true;
+    if (!enabled) return null;
+
+    const preset = $("#compressorPreset") ? $("#compressorPreset").value : "balanced";
+    if (preset === "fast") {
+        return { maxWidth: 1000, maxHeight: 1000, quality: 0.75, outputType: "image/jpeg" };
+    }
+    if (preset === "high") {
+        return { maxWidth: 1800, maxHeight: 1800, quality: 0.90, outputType: "image/jpeg" };
+    }
+    // Balanced (Recommended)
+    return { maxWidth: 1400, maxHeight: 1400, quality: 0.82, outputType: "image/jpeg" };
+}
 
 function show(loggedIn) {
     const loginEl = $("#login");
@@ -202,7 +337,6 @@ function renderAdminProductsList() {
         const imgs = toArray(p.images);
         const thumbUrl = imgs[0] || "";
         const sizes = toArray(p.sizes);
-        const colors = toArray(p.colors);
 
         return `
         <div class="item" data-id="${esc(p.id)}">
@@ -284,7 +418,6 @@ if (listEl) {
                 return;
             }
 
-            // Cleanup storage images
             const paths = toArray(p.images).map(pathFromUrl).filter(Boolean);
             if (paths.length > 0) {
                 try {
@@ -309,15 +442,21 @@ function drawThumbs() {
     keepImages.forEach((u, i) => {
         html += `
         <div class="thumb-item" style="background-image:url('${esc(u)}')">
+            <span class="thumb-stats-badge">Saved</span>
             <button type="button" class="thumb-del" data-type="keep" data-i="${i}" title="Remove photo">×</button>
         </div>`;
     });
 
-    // Pending file uploads preview
+    // Pending file uploads preview with compression stats
     pendingUploadFiles.forEach((item, i) => {
+        const sizeStr = formatFileSize(item.compressedSize || item.file.size);
+        const badgeClass = item.reductionPct > 0 ? "thumb-stats-badge badge-compressed" : "thumb-stats-badge";
+        const badgeText = item.reductionPct > 0 ? `-${item.reductionPct}%` : "New";
+
         html += `
         <div class="thumb-item" style="background-image:url('${esc(item.preview)}')">
-            <span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.65);color:#fff;font-size:0.6rem;text-align:center;padding:1px 0">New</span>
+            <span class="${badgeClass}">${esc(badgeText)}</span>
+            <span class="thumb-size-info">${esc(sizeStr)}</span>
             <button type="button" class="thumb-del" data-type="file" data-i="${i}" title="Remove file">×</button>
         </div>`;
     });
@@ -363,16 +502,75 @@ if (btnAddImageUrl && imageUrlInput) {
     };
 }
 
-// File input handler for immediate local preview
+// File input handler with automatic client-side compression
 const filesInput = $("#files");
 if (filesInput) {
-    filesInput.onchange = () => {
+    filesInput.onchange = async () => {
         const files = Array.from(filesInput.files || []);
-        files.forEach(f => {
-            const previewUrl = URL.createObjectURL(f);
-            pendingUploadFiles.push({ file: f, preview: previewUrl });
-        });
-        filesInput.value = ""; // Reset so same file can be re-selected if removed
+        if (files.length === 0) return;
+
+        const options = getCompressorOptions();
+        const statusEl = $("#compressionStatus");
+
+        if (options && statusEl) {
+            statusEl.hidden = false;
+            statusEl.className = "compression-status";
+            statusEl.innerHTML = `<span>⏳ Optimizing &amp; compressing ${files.length} photo${files.length > 1 ? "s" : ""}…</span>`;
+        }
+
+        let totalOriginal = 0;
+        let totalCompressed = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            totalOriginal += f.size;
+
+            if (options) {
+                try {
+                    const res = await compressImage(f, options);
+                    totalCompressed += res.compressedSize;
+
+                    const cleanName = f.name.replace(/\.[^.]+$/, "") + ".jpg";
+                    const compressedFile = new File([res.blob], cleanName, { type: "image/jpeg" });
+
+                    pendingUploadFiles.push({
+                        file: compressedFile,
+                        preview: res.dataUrl,
+                        originalSize: res.originalSize,
+                        compressedSize: res.compressedSize,
+                        reductionPct: res.reductionPct
+                    });
+                } catch (err) {
+                    console.warn("Compression fallback:", err);
+                    totalCompressed += f.size;
+                    pendingUploadFiles.push({
+                        file: f,
+                        preview: URL.createObjectURL(f),
+                        originalSize: f.size,
+                        compressedSize: f.size,
+                        reductionPct: 0
+                    });
+                }
+            } else {
+                totalCompressed += f.size;
+                pendingUploadFiles.push({
+                    file: f,
+                    preview: URL.createObjectURL(f),
+                    originalSize: f.size,
+                    compressedSize: f.size,
+                    reductionPct: 0
+                });
+            }
+        }
+
+        if (options && statusEl && totalOriginal > 0) {
+            const savedBytes = totalOriginal - totalCompressed;
+            const savedPct = Math.max(0, Math.round((savedBytes / totalOriginal) * 100));
+            statusEl.className = "compression-status success";
+            statusEl.innerHTML = `<span>⚡ Compressed ${files.length} photo${files.length > 1 ? "s" : ""}: saved ${formatFileSize(savedBytes)} (${savedPct}% reduction, total: ${formatFileSize(totalCompressed)}) ✓</span>`;
+        }
+
+        filesInput.value = "";
         drawThumbs();
     };
 }
@@ -387,6 +585,12 @@ function resetForm() {
 
     const instock = $("#instock");
     if (instock) instock.checked = true;
+
+    const statusEl = $("#compressionStatus");
+    if (statusEl) {
+        statusEl.hidden = true;
+        statusEl.innerHTML = "";
+    }
 
     drawThumbs();
 
@@ -413,6 +617,12 @@ function startEdit(p) {
 
     $("#ftitle").textContent = `Edit Product: "${p.name}"`;
     $("#cancel").hidden = false;
+
+    const statusEl = $("#compressionStatus");
+    if (statusEl) {
+        statusEl.hidden = true;
+        statusEl.innerHTML = "";
+    }
 
     drawThumbs();
     msg("");
@@ -448,12 +658,12 @@ if (pform) {
 
         const saveBtn = $("#save");
         saveBtn.disabled = true;
-        msg("Saving product…");
+        msg("Uploading compressed photos & saving product…");
 
         try {
             const uploadedUrls = [];
 
-            // Upload pending files to Supabase Storage
+            // Upload compressed files to Supabase Storage
             for (const item of pendingUploadFiles) {
                 const f = item.file;
                 const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -461,7 +671,7 @@ if (pform) {
 
                 const { error: uploadErr } = await sb.storage.from(BUCKET).upload(path, f, {
                     contentType: f.type || "image/jpeg",
-                    cacheControl: "3600",
+                    cacheControl: "31536000",
                     upsert: false
                 });
 
@@ -505,7 +715,7 @@ if (pform) {
     };
 }
 
-/* ---------- Store Showcase Photos Admin ---------- */
+/* ---------- Store Showcase Photos Admin (With Auto-Compression) ---------- */
 const DEFAULT_STORE_PHOTOS = {
     main: "store_main.jpg",
     down1: "store_interior.jpg",
@@ -547,17 +757,19 @@ function renderShowcasePreview(containerId, url) {
     el.innerHTML = url ? `<img src="${esc(url)}" alt="Preview" style="height:70px;border-radius:6px;border:1px solid var(--line);object-fit:cover">` : "";
 }
 
-function readFileAsDataUrl(fileInput) {
-    return new Promise(resolve => {
-        if (fileInput && fileInput.files && fileInput.files[0]) {
+async function processShowcaseFileInput(fileInput) {
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const f = fileInput.files[0];
+        // Auto-compress showcase images to max 1600px, 80% quality
+        const res = await compressImage(f, { maxWidth: 1600, maxHeight: 1600, quality: 0.80, outputType: "image/jpeg" });
+        return new Promise(resolve => {
             const reader = new FileReader();
             reader.onload = e => resolve(e.target.result);
             reader.onerror = () => resolve(null);
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            resolve(null);
-        }
-    });
+            reader.readAsDataURL(res.blob);
+        });
+    }
+    return null;
 }
 
 const adminStoreShowcaseForm = $("#adminStoreShowcaseForm");
@@ -566,16 +778,16 @@ if (adminStoreShowcaseForm) {
         e.preventDefault();
         const msgEl = $("#showcaseMsg");
         if (msgEl) {
-            msgEl.textContent = "Saving showcase photos…";
+            msgEl.textContent = "Compressing & saving showcase photos…";
             msgEl.className = "msg";
         }
 
         const existing = getSavedStorePhotos();
 
-        const fileMainData = await readFileAsDataUrl($("#storeMainFile"));
-        const fileDown1Data = await readFileAsDataUrl($("#storeDown1File"));
-        const fileDown2Data = await readFileAsDataUrl($("#storeDown2File"));
-        const fileDown3Data = await readFileAsDataUrl($("#storeDown3File"));
+        const fileMainData = await processShowcaseFileInput(document.getElementById("storeMainFile"));
+        const fileDown1Data = await processShowcaseFileInput(document.getElementById("storeDown1File"));
+        const fileDown2Data = await processShowcaseFileInput(document.getElementById("storeDown2File"));
+        const fileDown3Data = await processShowcaseFileInput(document.getElementById("storeDown3File"));
 
         const updated = {
             main: fileMainData || ($("#storeMainUrl").value.trim() || existing.main || DEFAULT_STORE_PHOTOS.main),
@@ -587,13 +799,13 @@ if (adminStoreShowcaseForm) {
         try {
             localStorage.setItem("jdi_store_showcase_photos", JSON.stringify(updated));
             if (msgEl) {
-                msgEl.textContent = "Showcase photos updated successfully! ✓";
+                msgEl.textContent = "Showcase photos compressed and updated successfully! ✓";
                 msgEl.className = "msg ok";
             }
             loadShowcaseAdmin();
         } catch (err) {
             if (msgEl) {
-                msgEl.textContent = "Saved to local session. (Storage quota reached for base64 images).";
+                msgEl.textContent = "Saved to current session.";
                 msgEl.className = "msg";
             }
         }

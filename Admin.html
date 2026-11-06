@@ -129,29 +129,179 @@
         .url-add-row {
             display: flex;
             gap: 8px;
-            margin-top: 4px;
+            margin-top: 8px;
         }
 
         .url-add-row input {
             flex: 1;
         }
 
+        /* ===== SMART IMAGE COMPRESSOR STYLES ===== */
+        .compressor-panel {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 6px 0 12px;
+        }
+
+        .compressor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .compressor-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+            color: var(--ink);
+        }
+
+        .compressor-icon {
+            font-size: 1.15rem;
+            color: #eab308;
+        }
+
+        .compressor-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+        }
+
+        .compressor-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            color: var(--ink);
+        }
+
+        .compressor-toggle input[type=checkbox] {
+            accent-color: var(--tape);
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+        }
+
+        .compressor-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        .compressor-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .compressor-field select {
+            padding: 7px 12px;
+            border: 1.5px solid var(--line);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: #fff;
+            font-weight: 600;
+            color: var(--ink);
+            flex: 1;
+            max-width: 440px;
+        }
+
+        .compressor-info {
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        .compression-status {
+            margin-top: 8px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: #0369a1;
+            background: #f0f9ff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #bae6fd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .compression-status.success {
+            color: #065f46;
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        /* Thumbnails Preview Grid */
         .thumbs {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         .thumbs .thumb-item {
             position: relative;
-            width: 74px;
-            height: 94px;
+            width: 86px;
+            height: 110px;
             border: 1.5px solid var(--line);
             border-radius: 8px;
             background: #f4f4f4 center/cover no-repeat;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             overflow: hidden;
+        }
+
+        .thumb-stats-badge {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 3px;
+            letter-spacing: 0.03em;
+            z-index: 2;
+        }
+
+        .thumb-stats-badge.badge-compressed {
+            background: #059669;
+            color: #fff;
+        }
+
+        .thumb-size-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 2px 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 2;
         }
 
         .thumbs .thumb-item .thumb-del {
@@ -172,6 +322,7 @@
             align-items: center;
             justify-content: center;
             transition: background 0.15s;
+            z-index: 3;
         }
 
         .thumbs .thumb-item .thumb-del:hover {
@@ -475,11 +626,43 @@
                             </div>
                         </div>
 
+                        <!-- Product Photos & Smart Compressor -->
                         <div class="field">
                             <label for="files">Product Photos (Upload files or add Image URLs)</label>
+                            
+                            <!-- Smart Image Compressor Panel -->
+                            <div class="compressor-panel">
+                                <div class="compressor-header">
+                                    <div class="compressor-title">
+                                        <span class="compressor-icon">⚡</span>
+                                        <strong>Smart Image Compressor</strong>
+                                        <span class="compressor-tag">Client-side</span>
+                                    </div>
+                                    <label class="compressor-toggle">
+                                        <input type="checkbox" id="compressorEnabled" checked>
+                                        <span>Compress on upload</span>
+                                    </label>
+                                </div>
+                                <div class="compressor-controls" id="compressorControls">
+                                    <div class="compressor-field">
+                                        <label for="compressorPreset">Quality Preset:</label>
+                                        <select id="compressorPreset">
+                                            <option value="balanced" selected>Balanced (1400px, 82% quality - Recommended, ~150–300 KB)</option>
+                                            <option value="fast">Ultra Fast Web (1000px, 75% quality - Lightest, ~80–150 KB)</option>
+                                            <option value="high">High Detail (1800px, 90% quality - High-res, ~400–700 KB)</option>
+                                        </select>
+                                    </div>
+                                    <div class="compressor-info">
+                                        <span>💡 Mobile camera photos (3–10 MB) are automatically compressed by up to 90%+ before uploading, keeping the storefront ultra-fast for customers.</span>
+                                    </div>
+                                </div>
+                                <div id="compressionStatus" class="compression-status" hidden></div>
+                            </div>
+
                             <input id="files" type="file" accept="image/*" multiple>
+
                             <div class="url-add-row">
-                                <input type="url" id="imageUrlInput" placeholder="Paste direct image URL (https://...)">
+                                <input type="url" id="imageUrlInput" placeholder="Or paste direct image URL (https://...)">
                                 <button type="button" class="sm" id="btnAddImageUrl">+ Add URL</button>
                             </div>
                             <div class="thumbs" id="thumbs"></div>
@@ -515,7 +698,7 @@
             <div id="tabShowcaseView" hidden>
                 <div class="admin-card">
                     <h3 style="margin:0 0 6px">Store Showcase Photos</h3>
-                    <p style="margin:0 0 20px;color:var(--muted);font-size:0.9rem">Manage the featured photos displayed in the "Visit Us" Devichowk store showcase on the home page.</p>
+                    <p style="margin:0 0 16px;color:var(--muted);font-size:0.9rem">Manage the featured showroom photos displayed in the "Visit Us" Devichowk showcase on the home page. File uploads are automatically compressed.</p>
 
                     <form id="adminStoreShowcaseForm">
                         <div class="field">
