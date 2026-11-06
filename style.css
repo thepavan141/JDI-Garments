@@ -277,18 +277,18 @@ nav[aria-label="Main Navigation"] a:hover {
 
 /* ===== HERO MOTION BANNER ===== */
 .banner-section {
-    padding: 16px 0 8px;
+    padding: 0;
 }
 
 .motion-banner {
     position: relative;
     width: 100%;
-    aspect-ratio: 21 / 9;
-    max-height: 460px;
-    border-radius: var(--radius-lg);
+    aspect-ratio: 16 / 7;
+    max-height: 640px;
+    border-radius: 0;
     overflow: hidden;
     background: #111;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
 }
 
 .motion-slides {
@@ -1421,12 +1421,12 @@ dialog#dlg {
     border: 0;
     border-radius: var(--radius-lg);
     padding: 0;
-    width: min(780px, 94vw);
-    max-height: 90vh;
+    width: min(920px, 96vw);
+    max-height: 94vh;
     background: #fff;
     color: var(--ink);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
     position: relative;
 }
 
@@ -1464,26 +1464,51 @@ dialog::backdrop {
 
 .dlg-product-wrap {
     display: grid;
-    grid-template-columns: 1fr 1.15fr;
-    gap: 24px;
-    padding: 24px;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 0;
+    padding: 0;
+    min-height: 0;
+}
+
+.dlg-media-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fb;
+    padding: 24px 20px;
+    border-right: 1px solid var(--line);
+    position: relative;
 }
 
 .dlg-hero-frame {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4;
+    max-width: 440px;
+    height: 480px;
     border-radius: var(--radius-md);
     overflow: hidden;
-    background: #f3f4f6;
-    border: 1px solid var(--line);
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .dlg-hero-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
     display: block;
+    margin: auto;
+    transition: transform 0.25s ease;
+}
+
+.dlg-hero-frame:hover .dlg-hero-img {
+    transform: scale(1.03);
 }
 
 .dlg-hero-placeholder {
@@ -1492,44 +1517,57 @@ dialog::backdrop {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
+    color: var(--muted);
 }
 
 .dlg-thumbs-gallery {
     display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    gap: 10px;
+    margin-top: 14px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
 }
 
 .dlg-gallery-thumb {
-    width: 56px;
-    height: 72px;
-    border-radius: 6px;
+    width: 58px;
+    height: 68px;
+    border-radius: 8px;
     border: 2px solid transparent;
     overflow: hidden;
     cursor: pointer;
     padding: 0;
-    background: #eee;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
-    transition: border-color 0.15s;
+    transition: all 0.2s ease;
+}
+
+.dlg-gallery-thumb:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
 }
 
 .dlg-gallery-thumb.active {
     border-color: var(--tape);
+    box-shadow: 0 0 0 1px var(--tape);
 }
 
 .dlg-gallery-thumb img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background: #fff;
 }
 
 .dlg-info-column {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    padding: 32px 28px 28px;
+    overflow-y: auto;
+    max-height: 94vh;
 }
 
 .dlg-kicker {
@@ -1761,11 +1799,34 @@ dialog::backdrop {
     }
     .dlg-product-wrap {
         grid-template-columns: 1fr;
-        gap: 18px;
+        gap: 0;
+    }
+    .dlg-media-column {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 16px 14px;
+    }
+    .dlg-hero-frame {
+        width: 100%;
+        max-width: 100%;
+        height: 340px;
+        border-radius: var(--radius-md);
+    }
+    .dlg-info-column {
+        padding: 20px 18px 24px;
+        max-height: unset;
+        overflow-y: visible;
     }
 }
 
 @media (max-width: 768px) {
+    /* Mobile motion banner size */
+    .motion-banner {
+        aspect-ratio: 4 / 3;
+        min-height: 280px;
+        max-height: 460px;
+    }
+
     /* Mobile bottom bar appears */
     .mobile-nav-bar {
         display: flex;

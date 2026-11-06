@@ -85,16 +85,7 @@ if (btnOpenAdminStore && isAdminMode) {
 
 /* Category icons helper */
 function getCategoryIcon(c) {
-    if (c === "All") return "✦ ";
-    const lower = c.toLowerCase();
-    if (lower.includes("summer")) return "☀️ ";
-    if (lower.includes("party")) return "✨ ";
-    if (lower.includes("shirt")) return "👔 ";
-    if (lower.includes("jean") || lower.includes("pant") || lower.includes("trouser") || lower.includes("denim")) return "👖 ";
-    if (lower.includes("t-shirt") || lower.includes("tshirt") || lower.includes("tee")) return "👕 ";
-    if (lower.includes("daily")) return "👕 ";
-    if (lower.includes("kurta") || lower.includes("ethnic")) return "🥻 ";
-    return "❖ ";
+    return "";
 }
 
 /* ===== SKELETON LOADING SHIMMER ===== */
@@ -169,7 +160,7 @@ function render() {
     if (filtered.length === 0) {
         gridEl.innerHTML = `
         <div class="store-empty-card" style="grid-column: 1 / -1;">
-            <div class="empty-icon">🛍️</div>
+            <div class="empty-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
             <h3>No Outfits Found</h3>
             <p>${term ? `No products found matching "<strong>${esc(term)}</strong>"` : `No products found in the "<strong>${esc(cat)}</strong>" category.`}</p>
             <div class="btns" style="justify-content:center;margin-top:14px">
@@ -209,7 +200,7 @@ function render() {
             <div class="fashion-card-media" data-quick-id="${esc(p.id)}" title="Click to view details">
                 ${hasPhoto
                     ? `<img src="${esc(firstImg)}" alt="${esc(p.name)}" class="fashion-img" loading="lazy">`
-                    : `<div class="fashion-placeholder-img"><span>👔</span></div>`
+                    : `<div class="fashion-placeholder-img"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`
                 }
 
                 <div class="card-badge-container">
@@ -275,7 +266,7 @@ function openProduct(id) {
             <div class="dlg-hero-frame">
                 ${firstImg
                     ? `<img src="${esc(firstImg)}" id="dlgHeroImg" alt="${esc(p.name)}" class="dlg-hero-img">`
-                    : `<div class="dlg-hero-placeholder"><span>👔</span></div>`
+                    : `<div class="dlg-hero-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`
                 }
                 ${p.is_new ? `<span class="fashion-badge badge-new" style="position:absolute;top:12px;left:12px">NEW</span>` : ""}
             </div>
@@ -323,7 +314,7 @@ function openProduct(id) {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
                     <span>Order on WhatsApp</span>
                 </a>
-                <p class="dlg-pickup-note">🏪 Pay and collect in person · JDI Garments near Devichowk showroom.</p>
+                <p class="dlg-pickup-note">Pay and collect in person · JDI Garments near Devichowk showroom.</p>
             </div>
         </div>
     </div>`;

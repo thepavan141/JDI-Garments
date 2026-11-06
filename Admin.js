@@ -567,7 +567,7 @@ if (filesInput) {
             const savedBytes = totalOriginal - totalCompressed;
             const savedPct = Math.max(0, Math.round((savedBytes / totalOriginal) * 100));
             statusEl.className = "compression-status success";
-            statusEl.innerHTML = `<span>⚡ Compressed ${files.length} photo${files.length > 1 ? "s" : ""}: saved ${formatFileSize(savedBytes)} (${savedPct}% reduction, total: ${formatFileSize(totalCompressed)}) ✓</span>`;
+            statusEl.innerHTML = `<span>Compressed ${files.length} photo${files.length > 1 ? "s" : ""}: saved ${formatFileSize(savedBytes)} (${savedPct}% reduction, total: ${formatFileSize(totalCompressed)})</span>`;
         }
 
         filesInput.value = "";
@@ -704,7 +704,7 @@ if (pform) {
             if (saveErr) throw saveErr;
 
             resetForm();
-            msg("Product successfully saved! ✓", false);
+            msg("Product successfully saved!", false);
             await loadList();
         } catch (err) {
             console.error("Save product error:", err);
@@ -799,7 +799,7 @@ if (adminStoreShowcaseForm) {
         try {
             localStorage.setItem("jdi_store_showcase_photos", JSON.stringify(updated));
             if (msgEl) {
-                msgEl.textContent = "Showcase photos compressed and updated successfully! ✓";
+                msgEl.textContent = "Showcase photos compressed and updated successfully!";
                 msgEl.className = "msg ok";
             }
             loadShowcaseAdmin();
@@ -819,7 +819,7 @@ if (btnResetShowcase) {
         loadShowcaseAdmin();
         const msgEl = $("#showcaseMsg");
         if (msgEl) {
-            msgEl.textContent = "Reset to default showroom photos. ✓";
+            msgEl.textContent = "Reset to default showroom photos.";
             msgEl.className = "msg ok";
         }
     };
