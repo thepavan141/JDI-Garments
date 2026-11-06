@@ -6,6 +6,7 @@ let items = [];
 let editing = null;
 let keepImages = []; // Array of URLs or data URLs
 let pendingUploadFiles = []; // Array of { file: File, preview: string, originalSize: number, compressedSize: number, reductionPct: number }
+let currentStatusFilter = "all";
 
 const toArray = val => {
     if (Array.isArray(val)) return val;
@@ -315,21 +316,105 @@ async function loadList() {
     }
 }
 
+function updateStatsCounters() {
+    const statTotal = $("#statTotal");
+    const statInStock = $("#statInStock");
+    const statSoldOut = $("#statSoldOut");
+    const statNew = $("#statNew");
+    const badgeTotalCount = $("#badgeTotalCount");
+
+    const total = items.length;
+    const inStock = items.filter(p => p.in_stock !== false).length;
+    const soldOut = items.filter(p => p.in_stock === false).length;
+    const newItems = items.filter(p => Boolean(p.is_new)).length;
+
+    if (statTotal) statTotal.textContent = total;
+    if (statInStock) statInStock.textContent = inStock;
+    if (statSoldOut) statSoldOut.textContent = soldOut;
+    if (statNew) statNew.textContent = newItems;
+    if (badgeTotalCount) badgeTotalCount.textContent = `${total} outfit${total === 1 ? '' : 's'}`;
+}
+
+function setFilter(filterType) {
+    currentStatusFilter = filterType;
+
+    // Update filter pills active state
+    document.querySelectorAll("#catalogFilterPills .filter-pill").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.filter === filterType);
+    });
+
+    // Update stats cards active state
+    document.querySelectorAll("#adminStatsGrid .stat-card").forEach(card => {
+        card.classList.toggle("active", card.dataset.filter === filterType);
+    });
+
+    renderAdminProductsList();
+}
+
+// Quick filter pills and stats card delegation
+document.addEventListener("click", e => {
+    const pill = e.target.closest("#catalogFilterPills .filter-pill");
+    if (pill) {
+        setFilter(pill.dataset.filter);
+        return;
+    }
+
+    const statCard = e.target.closest("#adminStatsGrid .stat-card");
+    if (statCard) {
+        setFilter(statCard.dataset.filter);
+        const catalogCard = document.querySelector(".catalog-card");
+        if (catalogCard) catalogCard.scrollIntoView({ behavior: "smooth" });
+        return;
+    }
+});
+
 function renderAdminProductsList() {
     const listEl = $("#list");
     const countEl = $("#count");
     if (!listEl) return;
 
+    updateStatsCounters();
+
     const filterVal = ($("#adminFilter") ? $("#adminFilter").value : "").trim().toLowerCase();
+    
+    // Filter items using current status filter and search query
     const filtered = items.filter(p => {
+        // Quick status filter
+        if (currentStatusFilter === "in_stock" && p.in_stock === false) return false;
+        if (currentStatusFilter === "sold_out" && p.in_stock !== false) return false;
+        if (currentStatusFilter === "is_new" && !p.is_new) return false;
+
+        // Search text filter
         if (!filterVal) return true;
-        return (String(p.name || "") + " " + String(p.category || "")).toLowerCase().includes(filterVal);
+        const nameStr = String(p.name || "").toLowerCase();
+        const catStr = String(p.category || "").toLowerCase();
+        const sizesStr = toArray(p.sizes).join(" ").toLowerCase();
+        const colorsStr = toArray(p.colors).join(" ").toLowerCase();
+        const searchBlob = `${nameStr} ${catStr} ${sizesStr} ${colorsStr}`;
+        return searchBlob.includes(filterVal);
     });
 
     if (countEl) countEl.textContent = `Products (${items.length})`;
 
+    const subtitleEl = $("#catalogSubtitle");
+    if (subtitleEl) {
+        if (filterVal || currentStatusFilter !== "all") {
+            subtitleEl.textContent = `Showing ${filtered.length} of ${items.length} products matching filter`;
+        } else {
+            subtitleEl.textContent = `Manage outfits, update inventory stock, and edit prices`;
+        }
+    }
+
     if (filtered.length === 0) {
-        listEl.innerHTML = `<p style="color:var(--muted);padding:14px 0">${items.length === 0 ? "No products in database yet. Add your first product above." : "No products match your filter search."}</p>`;
+        listEl.innerHTML = `
+        <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--admin-muted);margin:0 auto 10px;display:block">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <p><strong>${items.length === 0 ? "No products in database yet." : "No outfits match your filter search."}</strong></p>
+            <p class="empty-sub">${items.length === 0 ? "Add your first product above to display it in the store." : "Try clearing your search query or selecting a different filter tab."}</p>
+        </div>`;
         return;
     }
 
@@ -337,36 +422,101 @@ function renderAdminProductsList() {
         const imgs = toArray(p.images);
         const thumbUrl = imgs[0] || "";
         const sizes = toArray(p.sizes);
+        const colors = toArray(p.colors);
+        const hasDiscount = p.original_price && p.original_price > p.price;
+        const discountPct = hasDiscount ? Math.round(((p.original_price - p.price) / p.original_price) * 100) : 0;
 
         return `
-        <div class="item" data-id="${esc(p.id)}">
-            <div class="t" style="background-image:url('${esc(thumbUrl)}')"></div>
-            <div class="m">
-                <strong>${esc(p.name)}</strong>
-                <div class="item-meta">
-                    <span style="font-weight:700;color:var(--ink)">${rupee(p.price)}</span>
-                    ${p.original_price && p.original_price > p.price ? `<span style="text-decoration:line-through">${rupee(p.original_price)}</span>` : ""}
-                    <span>·</span>
-                    <span>${esc(p.category || "Outfit")}</span>
-                    <span>·</span>
-                    <span class="item-badge ${p.in_stock ? "badge-green" : "badge-red"}">${p.in_stock ? "In stock" : "Sold out"}</span>
-                    ${p.is_new ? `<span class="item-badge badge-new-item">New Arrival</span>` : ""}
+        <div class="item ${p.in_stock ? 'is-in-stock' : 'is-sold-out'}" data-id="${esc(p.id)}">
+            <div class="t-wrap">
+                <div class="t" style="background-image:url('${esc(thumbUrl)}')">
+                    ${!thumbUrl ? `<div class="no-img-ph"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>` : ''}
+                    ${imgs.length > 1 ? `<span class="img-count-tag">${imgs.length} photos</span>` : ''}
                 </div>
-                ${sizes.length > 0 ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:3px">Sizes: ${esc(sizes.join(", "))}</div>` : ""}
             </div>
+
+            <div class="m">
+                <div class="item-header-line">
+                    <strong class="item-title" title="${esc(p.name)}">${esc(p.name)}</strong>
+                    <div class="item-price-block">
+                        <span class="item-price">${rupee(p.price)}</span>
+                        ${hasDiscount ? `<span class="item-old-price">${rupee(p.original_price)}</span>` : ''}
+                        ${hasDiscount ? `<span class="item-discount-badge">${discountPct}% OFF</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="item-meta-tags">
+                    <span class="meta-tag tag-category">${esc(p.category || "Outfit")}</span>
+                    <span class="meta-tag tag-stock ${p.in_stock ? 'stock-yes' : 'stock-no'}">
+                        <span class="status-indicator-dot"></span>
+                        ${p.in_stock ? 'In Stock' : 'Sold Out'}
+                    </span>
+                    ${p.is_new ? `<span class="meta-tag tag-new">New Arrival</span>` : ''}
+                </div>
+
+                ${sizes.length > 0 || colors.length > 0 ? `
+                <div class="item-variants-line">
+                    ${sizes.length > 0 ? `
+                        <div class="variant-cluster">
+                            <span class="variant-label">Sizes:</span>
+                            <div class="size-chips-preview">
+                                ${sizes.map(s => `<span class="variant-chip size-chip">${esc(s)}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${colors.length > 0 ? `
+                        <div class="variant-cluster">
+                            <span class="variant-label">Colours:</span>
+                            <div class="color-chips-preview">
+                                ${colors.map(c => `<span class="variant-chip color-chip">${esc(c)}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+                ` : ''}
+            </div>
+
             <div class="acts">
-                <button class="sm" data-act="edit">Edit</button>
-                <button class="sm" data-act="stock">${p.in_stock ? "Mark Sold Out" : "Mark In Stock"}</button>
-                <button class="sm" data-act="new">${p.is_new ? "Remove New" : "Mark New"}</button>
-                <button class="sm danger" data-act="del">Delete</button>
+                <button type="button" class="act-btn btn-edit" data-act="edit" title="Edit product details">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Edit</span>
+                </button>
+                <button type="button" class="act-btn ${p.in_stock ? 'btn-mark-out' : 'btn-mark-in'}" data-act="stock" title="${p.in_stock ? 'Mark as Sold Out' : 'Mark as In Stock'}">
+                    ${p.in_stock
+                        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg><span>Sold Out</span>`
+                        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg><span>In Stock</span>`
+                    }
+                </button>
+                <button type="button" class="act-btn ${p.is_new ? 'btn-active-new' : ''}" data-act="new" title="${p.is_new ? 'Remove New Arrival badge' : 'Set as New Arrival'}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="${p.is_new ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <span>${p.is_new ? 'New' : 'Mark New'}</span>
+                </button>
+                <button type="button" class="act-btn btn-delete" data-act="del" title="Delete product permanently">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>Delete</span>
+                </button>
             </div>
         </div>`;
     }).join("");
 }
 
 const adminFilterInput = $("#adminFilter");
+const adminFilterClear = $("#adminFilterClear");
+
 if (adminFilterInput) {
-    adminFilterInput.oninput = () => renderAdminProductsList();
+    adminFilterInput.oninput = () => {
+        if (adminFilterClear) adminFilterClear.hidden = adminFilterInput.value.length === 0;
+        renderAdminProductsList();
+    };
+}
+
+if (adminFilterClear && adminFilterInput) {
+    adminFilterClear.onclick = () => {
+        adminFilterInput.value = "";
+        adminFilterClear.hidden = true;
+        renderAdminProductsList();
+        adminFilterInput.focus();
+    };
 }
 
 const btnRefreshList = $("#btnRefreshList");
@@ -575,6 +725,33 @@ if (filesInput) {
     };
 }
 
+function updatePriceCalcPreview() {
+    const priceEl = $("#price");
+    const opriceEl = $("#oprice");
+    const previewEl = $("#priceCalcPreview");
+    if (!priceEl || !opriceEl || !previewEl) return;
+
+    const price = parseInt(priceEl.value, 10);
+    const oprice = parseInt(opriceEl.value, 10);
+
+    if (!isNaN(price) && !isNaN(oprice) && oprice > price && price > 0) {
+        const discountPct = Math.round(((oprice - price) / oprice) * 100);
+        const savings = oprice - price;
+        previewEl.hidden = false;
+        previewEl.innerHTML = `<span><strong>Live Preview:</strong> ₹${price.toLocaleString("en-IN")} (was ₹${oprice.toLocaleString("en-IN")}) • <strong>${discountPct}% OFF</strong> • Customer saves ₹${savings.toLocaleString("en-IN")}</span>`;
+    } else {
+        previewEl.hidden = true;
+        previewEl.innerHTML = "";
+    }
+}
+
+const priceInput = $("#price");
+const opriceInput = $("#oprice");
+if (priceInput && opriceInput) {
+    priceInput.addEventListener("input", updatePriceCalcPreview);
+    opriceInput.addEventListener("input", updatePriceCalcPreview);
+}
+
 function resetForm() {
     editing = null;
     keepImages = [];
@@ -592,6 +769,12 @@ function resetForm() {
         statusEl.innerHTML = "";
     }
 
+    const previewEl = $("#priceCalcPreview");
+    if (previewEl) {
+        previewEl.hidden = true;
+        previewEl.innerHTML = "";
+    }
+
     drawThumbs();
 
     const ftitle = $("#ftitle");
@@ -599,6 +782,9 @@ function resetForm() {
 
     const cancelBtn = $("#cancel");
     if (cancelBtn) cancelBtn.hidden = true;
+
+    const cancelTop = $("#cancelTop");
+    if (cancelTop) cancelTop.hidden = true;
 }
 
 function startEdit(p) {
@@ -618,12 +804,16 @@ function startEdit(p) {
     $("#ftitle").textContent = `Edit Product: "${p.name}"`;
     $("#cancel").hidden = false;
 
+    const cancelTop = $("#cancelTop");
+    if (cancelTop) cancelTop.hidden = false;
+
     const statusEl = $("#compressionStatus");
     if (statusEl) {
         statusEl.hidden = true;
         statusEl.innerHTML = "";
     }
 
+    updatePriceCalcPreview();
     drawThumbs();
     msg("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -632,6 +822,14 @@ function startEdit(p) {
 const cancelBtn = $("#cancel");
 if (cancelBtn) {
     cancelBtn.onclick = () => {
+        resetForm();
+        msg("");
+    };
+}
+
+const cancelTop = $("#cancelTop");
+if (cancelTop) {
+    cancelTop.onclick = () => {
         resetForm();
         msg("");
     };
