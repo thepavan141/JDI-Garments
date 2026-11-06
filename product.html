@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Product Details – JDI Garments | Devichowk</title>
+    <meta name="description" content="View product details, available sizes, colours, and reserve with convenient in-store pickup at JDI Garments Devichowk showroom.">
+    <link rel="icon" type="image/jpeg" href="photo.jpg">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="pdp-body">
+
+    <div class="pinned-top">
+        <!-- Promotional Top Announcement Bar -->
+        <div class="announce" id="promoBanner" aria-live="polite">
+            <button class="promo-nav" id="promoPrev" aria-label="Previous announcement" type="button">&#8249;</button>
+            <div class="promo-slider" id="promoSlider">
+                <div class="promo-track" id="promoTrack">
+                    <span class="promo-item">New stock drops every week</span>
+                    <span class="promo-dot">•</span>
+                    <span class="promo-item">Special offer: ₹300 off on orders above ₹2,500</span>
+                    <span class="promo-dot">•</span>
+                    <span class="promo-item">In-store pickup &amp; try-on near Devichowk</span>
+                    <span class="promo-dot">•</span>
+                    <span class="promo-item" aria-hidden="true">New stock drops every week</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
+                    <span class="promo-item" aria-hidden="true">Special offer: ₹300 off on orders above ₹2,500</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
+                    <span class="promo-item" aria-hidden="true">In-store pickup &amp; try-on near Devichowk</span>
+                    <span class="promo-dot" aria-hidden="true">•</span>
+                </div>
+            </div>
+            <button class="promo-nav" id="promoNext" aria-label="Next announcement" type="button">&#8250;</button>
+        </div>
+
+        <!-- Sticky Header Bar -->
+        <header>
+            <div class="wrap header-row">
+                <a class="brand" href="index.html" title="JDI Garments – The Fashion Destination">
+                    <img src="photo.jpg" alt="JDI Garments" class="logo">
+                </a>
+
+                <div class="header-nav-group">
+                    <!-- Search Link -->
+                    <div class="nav-search pdp-search">
+                        <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input id="q" type="search" placeholder="Search catalog…" aria-label="Search products" onkeydown="if(event.key==='Enter') window.location.href='index.html?q='+encodeURIComponent(this.value)">
+                    </div>
+
+                    <!-- Navigation Links & Cart Button -->
+                    <nav class="pdp-header-nav" aria-label="Main Navigation">
+                        <a href="index.html#shop">Outfits</a>
+                        <a href="index.html#visit">Store Visit</a>
+                        <a href="index.html#policy">Exchange Policy</a>
+                    </nav>
+
+                    <div class="pdp-header-actions">
+                        <button type="button" class="header-icon-btn header-cart-btn" id="openCartBtn" aria-label="View Shopping Bag" title="Shopping Bag">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                            <span class="cart-badge" id="cartCount">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <main class="pdp-main-content">
+        <div class="wrap">
+            <!-- Breadcrumbs -->
+            <nav class="pdp-breadcrumb" aria-label="Breadcrumb">
+                <a href="index.html" class="bc-home" title="Home">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </a>
+                <span class="bc-sep">/</span>
+                <a href="index.html#shop" id="bcCategory">Apparel</a>
+                <span class="bc-sep">/</span>
+                <span class="bc-current" id="bcTitle">Loading product…</span>
+            </nav>
+
+            <!-- Loading Skeleton State -->
+            <div id="pdpLoading" class="pdp-loading-skeleton" aria-hidden="true">
+                <div class="pdp-skeleton-gallery skeleton-pulse"></div>
+                <div class="pdp-skeleton-info">
+                    <div class="skeleton-line skeleton-tag skeleton-pulse" style="width:120px;height:24px;border-radius:999px"></div>
+                    <div class="skeleton-line skeleton-pulse" style="width:75%;height:40px;margin:16px 0"></div>
+                    <div class="skeleton-line skeleton-pulse" style="width:40%;height:32px;margin-bottom:24px"></div>
+                    <div class="skeleton-line skeleton-pulse" style="width:100%;height:54px;border-radius:12px;margin-bottom:24px"></div>
+                    <div class="skeleton-line skeleton-pulse" style="width:60%;height:36px;margin-bottom:18px"></div>
+                    <div class="skeleton-line skeleton-pulse" style="width:100%;height:52px;border-radius:999px"></div>
+                </div>
+            </div>
+
+            <!-- Error / Empty State -->
+            <div id="pdpError" class="pdp-error-card" hidden>
+                <h3>Outfit Not Found</h3>
+                <p>The product you are looking for may have been updated or moved.</p>
+                <a href="index.html#shop" class="btn primary" style="margin-top:16px">Browse Available Outfits</a>
+            </div>
+
+            <!-- Product Showcase Grid (Reference Layout) -->
+            <div id="pdpProductWrap" class="pdp-grid" hidden>
+                <!-- LEFT COLUMN: Gallery & Thumbnails -->
+                <div class="pdp-gallery-col">
+                    <div class="pdp-main-image-card">
+                        <!-- Discount Badge -->
+                        <div class="pdp-discount-badge" id="pdpDiscountBadge" hidden>25% OFF</div>
+
+                        <!-- Main Image -->
+                        <div class="pdp-main-image-holder" id="mainImageHolder">
+                            <img src="" alt="" id="pdpMainImg" class="pdp-main-img">
+                        </div>
+
+                        <!-- Wishlist Heart Button -->
+                        <button type="button" class="pdp-wishlist-btn" id="pdpWishlistBtn" aria-label="Add to Wishlist" title="Save to wishlist">
+                            <svg class="heart-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </button>
+
+                        <!-- Fullscreen / Zoom Button -->
+                        <button type="button" class="pdp-zoom-btn" id="pdpZoomBtn" aria-label="View Fullscreen" title="Zoom photo">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <polyline points="9 21 3 21 3 15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Thumbnails Carousel Strip -->
+                    <div class="pdp-thumbs-container" id="pdpThumbsContainer">
+                        <div class="pdp-thumbs-track" id="pdpThumbsTrack">
+                            <!-- Thumbnails injected via JS -->
+                        </div>
+                        <button type="button" class="pdp-thumbs-scroll-btn" id="pdpThumbsNext" aria-label="Next photos" title="Scroll thumbnails">&#8250;</button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Product Information & Purchase Options -->
+                <div class="pdp-info-col">
+                    <!-- Category Capsule Tag -->
+                    <div class="pdp-category-pill" id="pdpCategoryPill">COLLECTION</div>
+
+                    <!-- Product Heading -->
+                    <h1 class="pdp-title" id="pdpTitle">Product Name</h1>
+
+                    <!-- Rating & Stock Badge Row -->
+                    <div class="pdp-meta-row">
+                        <div class="pdp-rating">
+                            <span class="star-icon">★</span>
+                            <strong>4.8</strong>
+                            <span class="rating-count">(12k+ reviews)</span>
+                        </div>
+                        <span class="pdp-meta-divider">|</span>
+                        <div class="pdp-stock-status in-stock" id="pdpStockBadge">
+                            <svg class="stock-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span id="pdpStockText">In stock</span>
+                        </div>
+                    </div>
+
+                    <!-- Price Row -->
+                    <div class="pdp-price-row">
+                        <span class="pdp-current-price" id="pdpCurrentPrice">₹0</span>
+                        <span class="pdp-was-price" id="pdpWasPrice"></span>
+                        <span class="pdp-discount-tag" id="pdpDiscountTag" hidden></span>
+                    </div>
+                    <div class="pdp-tax-note">Inclusive of all taxes</div>
+
+                    <!-- Delivery & Pickup Promo Card -->
+                    <div class="pdp-delivery-card">
+                        <svg class="delivery-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <rect x="1" y="3" width="15" height="13"></rect>
+                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                        </svg>
+                        <span>Free In-Store Pickup • Try &amp; Buy near Devichowk</span>
+                    </div>
+
+                    <!-- Size Selector -->
+                    <div class="pdp-selector-group" id="pdpSizeGroup">
+                        <div class="pdp-selector-header">
+                            <span class="pdp-selector-label">Select Size:</span>
+                            <button type="button" class="pdp-size-guide-btn" id="btnOpenSizeGuide">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M2 12h20M7 12v-3M12 12v-4M17 12v-3"></path>
+                                    <rect x="2" y="7" width="20" height="10" rx="2"></rect>
+                                </svg>
+                                <span>Size Guide</span>
+                            </button>
+                        </div>
+                        <div class="pdp-size-chips" id="pdpSizeChips" role="radiogroup" aria-label="Select Size">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Colour Selector -->
+                    <div class="pdp-selector-group" id="pdpColourGroup">
+                        <div class="pdp-selector-header">
+                            <span class="pdp-selector-label">Select Colour: <strong id="pdpSelectedColourLabel" class="pdp-chosen-color-text"></strong></span>
+                        </div>
+                        <div class="pdp-colour-swatches" id="pdpColourSwatches" role="radiogroup" aria-label="Select Colour">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Quantity Row -->
+                    <div class="pdp-qty-row">
+                        <span class="pdp-qty-label">Quantity:</span>
+                        <div class="pdp-qty-stepper">
+                            <button type="button" class="btn-stepper" id="qtyMinus" aria-label="Decrease quantity">−</button>
+                            <span class="qty-display" id="qtyDisplay">1</span>
+                            <button type="button" class="btn-stepper" id="qtyPlus" aria-label="Increase quantity">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Shopping Action Buttons (Reference Design) -->
+                    <div class="pdp-action-buttons">
+                        <!-- Add to Cart Button (Dark Navy) -->
+                        <button type="button" class="btn pdp-btn-cart" id="btnAddToCart">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                            <span>Add to Cart</span>
+                        </button>
+
+                        <!-- Buy Now Button (Vibrant Pink Gradient) -->
+                        <button type="button" class="btn pdp-btn-buynow" id="btnBuyNow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            <span>Buy Now</span>
+                        </button>
+                    </div>
+
+                    <!-- Feedback Alert Notice -->
+                    <div id="pdpAlertMsg" class="pdp-alert-msg" hidden></div>
+
+                    <!-- Trust and Benefits Section (4 Columns) -->
+                    <div class="pdp-trust-section">
+                        <div class="pdp-trust-card">
+                            <div class="trust-item">
+                                <div class="trust-icon-box">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        <polyline points="9 12 11 14 15 10"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="trust-title">Secure Payments</span>
+                                <span class="trust-sub">Cash / UPI on pickup</span>
+                            </div>
+
+                            <div class="trust-item">
+                                <div class="trust-icon-box">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                    </svg>
+                                </div>
+                                <span class="trust-title">Easy Returns</span>
+                                <span class="trust-sub">(7 Days Exchange)</span>
+                            </div>
+
+                            <div class="trust-item">
+                                <div class="trust-icon-box">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+                                        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+                                    </svg>
+                                </div>
+                                <span class="trust-title">24/7 Support</span>
+                                <span class="trust-sub">Instant WhatsApp help</span>
+                            </div>
+
+                            <div class="trust-item">
+                                <div class="trust-icon-box">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <circle cx="12" cy="8" r="6"></circle>
+                                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                                    </svg>
+                                </div>
+                                <span class="trust-title">Premium Quality</span>
+                                <span class="trust-sub">Handpicked fabrics</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion Details: Description & Fabric Care -->
+                    <div class="pdp-accordions">
+                        <details class="pdp-accordion" open>
+                            <summary>
+                                <span>Product Overview &amp; Fabric Details</span>
+                                <span class="acc-chevron">▾</span>
+                            </summary>
+                            <div class="acc-content" id="pdpDescContent">
+                                <p>Carefully tailored with premium combed fibers for a soft hand-feel, natural drape, and all-day comfort. Features reinforced seams and a structured modern collar.</p>
+                                <ul class="pdp-bullet-list">
+                                    <li>Breathable, easy-iron finish for effortless daily styling</li>
+                                    <li>Regular modern fit suitable for work, casual evenings, and events</li>
+                                    <li>Preshrunk fabric to maintain shape after multiple washes</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="pdp-accordion">
+                            <summary>
+                                <span>Store Pickup &amp; Showroom Location</span>
+                                <span class="acc-chevron">▾</span>
+                            </summary>
+                            <div class="acc-content">
+                                <p><strong>JDI Garments Flagship Showroom</strong><br>Near Devichowk, Main Road. Open daily 10:00 AM – 10:00 PM.</p>
+                                <p>Reserve online, visit our showroom to try on for size, and complete your purchase using Cash, UPI, or Cards.</p>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Size Guide Modal Dialog -->
+    <dialog id="sizeGuideModal" class="pdp-modal" aria-label="Clothing Size Guide">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Men's Size Guide (Inches)</h3>
+                <button type="button" class="modal-close-btn" id="closeSizeGuideBtn" aria-label="Close size guide">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Measure around the fullest part of your chest and shoulders to find your ideal fit.</p>
+                <div class="table-responsive">
+                    <table class="size-guide-table">
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Chest (in)</th>
+                                <th>Shoulder (in)</th>
+                                <th>Length (in)</th>
+                                <th>Sleeve (in)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>S (38)</strong></td>
+                                <td>38 - 39</td>
+                                <td>17.0</td>
+                                <td>28.5</td>
+                                <td>24.5</td>
+                            </tr>
+                            <tr class="highlight-row">
+                                <td><strong>M (40)</strong></td>
+                                <td>40 - 41</td>
+                                <td>17.8</td>
+                                <td>29.5</td>
+                                <td>25.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>L (42)</strong></td>
+                                <td>42 - 43</td>
+                                <td>18.5</td>
+                                <td>30.5</td>
+                                <td>25.5</td>
+                            </tr>
+                            <tr>
+                                <td><strong>XL (44)</strong></td>
+                                <td>44 - 45</td>
+                                <td>19.2</td>
+                                <td>31.0</td>
+                                <td>26.0</td>
+                            </tr>
+                            <tr>
+                                <td><strong>XXL (46)</strong></td>
+                                <td>46 - 47</td>
+                                <td>20.0</td>
+                                <td>31.5</td>
+                                <td>26.5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="size-tip-box">
+                    <strong>Fit Advice:</strong> If you are between two sizes, choose the larger size for a relaxed drape, or the smaller size for a tailored slim silhouette.
+                </div>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Fullscreen Image Zoom Lightbox -->
+    <dialog id="zoomModal" class="zoom-lightbox-modal" aria-label="Enlarged photo preview">
+        <button type="button" class="zoom-close-btn" id="closeZoomBtn" aria-label="Close zoom">&times;</button>
+        <div class="zoom-img-container">
+            <img src="" alt="Enlarged product photo" id="lightboxImg" class="lightbox-img">
+        </div>
+    </dialog>
+
+    <!-- Site Footer -->
+    <footer class="site-footer" style="margin-top:60px">
+        <div class="wrap footer-main-grid">
+            <div class="footer-col footer-col-brand">
+                <a class="brand footer-brand" href="index.html">
+                    <img src="photo.jpg" alt="JDI Garments" class="logo footer-logo">
+                    <span>JDI GARMENTS</span>
+                </a>
+                <p class="footer-brand-desc">The Fashion Destination for modern men's wear. Weekly fresh drops near Devichowk.</p>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-col-title">Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html#shop">Browse Outfits</a></li>
+                    <li><a href="index.html#visit">Store Visit</a></li>
+                    <li><a href="index.html#policy">Exchange Policy</a></li>
+                    <li><a href="Admin.html">Admin Portal</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-col-title">Store Location</h4>
+                <div class="footer-contact-info">
+                    <div class="footer-info-row">
+                        <div><strong>JDI Garments</strong><br>Near Devichowk, Main Road</div>
+                    </div>
+                    <div class="footer-info-row">
+                        <div>Mon – Sun: 10:00 AM – 10:00 PM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom-bar">
+            <div class="wrap footer-bottom-wrap">
+                <div class="footer-copy">
+                    © 2026 <strong>JDI Garments</strong> · Near Devichowk. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="cart.js"></script>
+    <script src="product.js"></script>
+</body>
+
+</html>

@@ -60,6 +60,15 @@
                         <a href="#visit">Store Visit</a>
                         <a href="#policy">Exchange Policy</a>
                     </nav>
+
+                    <button type="button" class="header-icon-btn header-cart-btn" id="openCartBtn" aria-label="View Shopping Bag" title="Shopping Bag">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </button>
                 </div>
             </div>
         </header>
@@ -428,6 +437,7 @@
     <!-- Supabase Client & Storefront Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
+    <script src="cart.js"></script>
     <script src="script.js"></script>
 </body>
 

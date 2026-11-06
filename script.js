@@ -210,14 +210,14 @@ function render() {
 
                 ${p.in_stock === false ? `<div class="soldout-overlay"><span>SOLD OUT</span></div>` : ""}
 
-                <button type="button" class="fashion-quick-btn" data-id="${esc(p.id)}" aria-label="Quick View">
-                    <span>Quick View</span>
-                </button>
+                <a class="fashion-quick-btn" href="product.html?id=${esc(p.id)}" aria-label="View details for ${esc(p.name)}">
+                    <span>View Details</span>
+                </a>
             </div>
 
             <div class="fashion-card-body">
                 <div class="fashion-card-cat">${esc(displayCategory)}</div>
-                <h3 class="fashion-card-title" title="${esc(p.name)}">${esc(p.name)}</h3>
+                <h3 class="fashion-card-title" title="${esc(p.name)}"><a href="product.html?id=${esc(p.id)}">${esc(p.name)}</a></h3>
 
                 ${sizes.length > 0 ? `
                 <div class="fashion-sizes-row">
@@ -232,9 +232,9 @@ function render() {
                 </div>
 
                 <div class="fashion-card-actions">
-                    <button class="btn-card-quick" type="button" data-id="${esc(p.id)}">
+                    <a class="btn-card-quick" href="product.html?id=${esc(p.id)}">
                         <span>Details</span>
-                    </button>
+                    </a>
                     <a class="btn-card-wa" href="${waDirect}" target="_blank" rel="noopener" aria-label="Order on WhatsApp">
                         <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.777.818 2.8.818 3.181 0 5.768-2.587 5.768-5.768.001-3.18-2.585-5.767-5.772-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.634.077-1.782-.397-1.341-.555-2.203-1.89-2.27-1.979-.066-.09-1.042-1.388-1.042-2.646 0-1.258.657-1.879.89-2.135.232-.256.507-.32.677-.32.17 0 .341.002.489.01.157.009.367-.06.574.437.213.513.725 1.77.788 1.9.064.13.106.282.019.453-.086.171-.13.277-.256.425-.128.149-.268.332-.383.447-.128.128-.261.267-.112.523.149.256.662 1.092 1.42 1.767.977.871 1.799 1.141 2.055 1.27.256.128.405.107.554-.064.15-.171.64-.746.811-1.002.17-.256.341-.213.575-.128.234.085 1.488.702 1.744.83.256.128.426.192.489.298.064.107.064.618-.08 1.023z"/></svg>
                         <span>WhatsApp</span>
@@ -409,14 +409,19 @@ if (chipsEl) {
     };
 }
 
-/* Products Grid Click Handling */
+/* Products Grid Click Handling – Navigates to Dedicated Product Page */
 const gridEl = $("#grid");
 if (gridEl) {
     gridEl.onclick = e => {
-        const quickBtn = e.target.closest("[data-quick-id], .btn-card-quick, .fashion-quick-btn");
-        if (quickBtn) {
-            const id = quickBtn.dataset.quickId || quickBtn.dataset.id;
-            if (id) openProduct(id);
+        // If clicking WhatsApp direct link, let it open WhatsApp
+        if (e.target.closest(".btn-card-wa")) return;
+
+        const target = e.target.closest(".fashion-card, [data-quick-id], .btn-card-quick, .fashion-quick-btn");
+        if (target) {
+            const id = target.dataset.quickId || target.dataset.id;
+            if (id) {
+                window.location.href = `product.html?id=${encodeURIComponent(id)}`;
+            }
         }
     };
 
